@@ -1,0 +1,60 @@
+__pycache__/
+*.py[cod]
+*$py.class
+*.so
+.Python
+build/
+dist/
+*.egg-info/
+.venv/
+venv/
+env/
+.pytest_cache/
+.coverage
+htmlcov/
+coverage.xml
+*.cover
+.hypothesis/
+.mypy_cache/
+.ruff_cache/
+.tox/
+.nox/
+.idea/
+.vscode/
+*.swp
+*.swo
+.DS_Store
+Thumbs.db
+# user data (telemetry/license/jobs local)
+*.db-journal
+# build artifacts pyinstaller
+*.spec.bak
+# secretos
+.env
+.env.local
+.env.*.local
+*.key
+*.pem
+
+# Documentos de referencia y assets binarios pesados
+Documentos de referencia/
+Documentos de referencia */
+*.dwg
+*.DWG
+*.bak
+*.BAK
+*.zip
+*.rar
+*.7z
+*.mp4
+*.mov
+*.avi
+*.K_0
+*.Y02
+*.Y_
+*.k_0
+*.y02
+*.y_
+*.db
+*.sqlite
+*.sqlite3

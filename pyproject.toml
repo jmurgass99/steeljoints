@@ -1,0 +1,53 @@
+[build-system]
+requires = ["setuptools>=68", "wheel"]
+build-backend = "setuptools.build_meta"
+
+[project]
+name = "steelconnectionjm"
+version = "0.1.0"
+description = "Steel connection design (AISC 360-22 + AISC 358 + EC3-1-8 + NSR-10 F.2)"
+requires-python = ">=3.11"
+dependencies = ["numpy>=1.24", "jmstructural-common"]
+
+[project.optional-dependencies]
+api = ["fastapi>=0.100", "uvicorn[standard]>=0.20", "httpx>=0.25", "pydantic>=2.0"]
+dxf = ["ezdxf>=1.0"]
+test = ["pytest>=7.0", "pytest-cov>=4.0", "coverage>=7.0", "hypothesis>=6.0"]
+memos = ["handcalcs>=1.6", "forallpeople>=2.6"]
+
+[tool.setuptools.packages.find]
+where = ["."]
+include = ["steelconnectionjm*"]
+
+[tool.pytest.ini_options]
+testpaths = ["tests"]
+markers = [
+    "unit: tests rapidos sin deps externas",
+    "integration: requieren stack completo",
+    "slow: duracion > 5s",
+    "property: property-based con hypothesis",
+    "fastsap: requieren puente FastSAP",
+    "dxf: requieren DXFStructuralJm o ezdxf",
+]
+addopts = "--strict-markers"
+
+[tool.coverage.run]
+source = ["steelconnectionjm"]
+omit = [
+    "steelconnectionjm/_brand.py",
+    "tests/*",
+    "examples/*",
+]
+
+[tool.coverage.report]
+exclude_lines = [
+    "pragma: no cover",
+    "raise NotImplementedError",
+    "if __name__ == .__main__.:",
+    "if TYPE_CHECKING:",
+]
+fail_under = 80
+show_missing = true
+
+[tool.uv.sources]
+jmstructural-common = { workspace = true }
