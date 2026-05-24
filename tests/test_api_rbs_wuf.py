@@ -65,17 +65,17 @@ def test_rbs_larger_cut_lower_capacity():
 
 
 def test_rbs_error_missing_required():
-    """Payload vacio -> 400."""
+    """Payload vacio -> 422 (validación Pydantic; antes 400 vía dict→dataclass)."""
     r = client.post("/api/connections/rbs", json={})
-    assert r.status_code == 400
+    assert r.status_code == 422
 
 
 def test_rbs_error_negative_depth():
-    """Peralte negativo -> 400."""
+    """Peralte negativo -> 422 (Pydantic gt=0; antes 400 vía ValueError)."""
     payload = _rbs_valid_payload()
     payload["d_mm"] = -1.0
     r = client.post("/api/connections/rbs", json=payload)
-    assert r.status_code == 400
+    assert r.status_code == 422
 
 
 # -----------------------------------------------------------------------
@@ -133,14 +133,14 @@ def test_wuf_compact_check():
 
 
 def test_wuf_error_missing_required():
-    """Payload vacio -> 400."""
+    """Payload vacio -> 422 (validación Pydantic; antes 400 vía dict→dataclass)."""
     r = client.post("/api/connections/wuf", json={})
-    assert r.status_code == 400
+    assert r.status_code == 422
 
 
 def test_wuf_error_negative_zx():
-    """Zx negativo -> 400."""
+    """Zx negativo -> 422 (Pydantic gt=0; antes 400 vía ValueError)."""
     payload = _wuf_valid_payload()
     payload["beam_Zx_mm3"] = -100.0
     r = client.post("/api/connections/wuf", json=payload)
-    assert r.status_code == 400
+    assert r.status_code == 422
