@@ -53,25 +53,32 @@ def bolt_tension_Rd(As_mm2: float, fub_MPa: float, k2: float = 0.9,
 def bolt_bearing_Rd(d_mm: float, t_mm: float, fu_plate_MPa: float, fub_MPa: float,
                      e1: float, p1: float, e2: float, p2: float,
                      direction_inner: bool = False,
+                     d0_mm: float | None = None,
                      gamma_M2: float = GAMMA_M2) -> float:
     """
     Fb,Rd = k1 · αb · fu · d · t / γM2    [N]    (Tabla 3.4)
 
     Para perno de borde (extremo) en dirección de carga:
-        αb = min(αd, fub/fu, 1.0)   con αd = e1/(3·d)
+        αb = min(αd, fub/fu, 1.0)   con αd = e1/(3·d0)
     Para perno interior:
-        αb = min(αd, fub/fu, 1.0)   con αd = p1/(3·d) − 1/4
+        αb = min(αd, fub/fu, 1.0)   con αd = p1/(3·d0) − 1/4
 
     Perpendicular a la carga:
-        Para borde:    k1 = min(2.8·e2/d − 1.7, 2.5)
-        Para interior: k1 = min(1.4·p2/d − 1.7, 2.5)
+        Para borde:    k1 = min(2.8·e2/d0 − 1.7, 2.5)
+        Para interior: k1 = min(1.4·p2/d0 − 1.7, 2.5)
+
+    EC3 Tabla 3.4 usa el diámetro del agujero d0 en los ratios de posición
+    (αd, k1) y el diámetro del vástago d en el área de aplastamiento (d·t).
+    `d0_mm` por defecto = d_mm (retrocompatible); pasar d0 real (p.ej. d+2)
+    para reproducir la norma estrictamente.
     """
+    d0 = d_mm if d0_mm is None else d0_mm
     if direction_inner:
-        alpha_d = p1 / (3.0 * d_mm) - 0.25
-        k1 = min(1.4 * p2 / d_mm - 1.7, 2.5)
+        alpha_d = p1 / (3.0 * d0) - 0.25
+        k1 = min(1.4 * p2 / d0 - 1.7, 2.5)
     else:
-        alpha_d = e1 / (3.0 * d_mm)
-        k1 = min(2.8 * e2 / d_mm - 1.7, 2.5)
+        alpha_d = e1 / (3.0 * d0)
+        k1 = min(2.8 * e2 / d0 - 1.7, 2.5)
     alpha_b = min(alpha_d, fub_MPa / fu_plate_MPa, 1.0)
     return k1 * alpha_b * fu_plate_MPa * d_mm * t_mm / gamma_M2
 
@@ -132,7 +139,9 @@ def fillet_weld_Rd_directional(a_mm: float, L_mm: float, fu_MPa: float,
     # Capacidad como esfuerzo cortante simple en garganta:
     Fw_Rd = fvw_d * a_mm * L_mm
     return {"Fw_Rd_N": Fw_Rd, "utilization": util,
-            "fvw_d_MPa": fvw_d, "beta_w": beta_w}
+            "fvw_d_MPa": fvw_d, "beta_w": beta_w,
+            "von_mises_MPa": von_mises,
+            "limit_1_MPa": limit_1, "limit_2_MPa": limit_2}
 
 
 def fillet_weld_Rd_simplified(a_mm: float, L_mm: float, fu_MPa: float,
