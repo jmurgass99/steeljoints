@@ -53,12 +53,21 @@ def _aisc_block(inp: BlockShearInput) -> tuple[float, str]:
     return Rn, gov
 
 
-def _en1993_block(inp: BlockShearInput) -> tuple[float, str]:
+def _en1993_block(inp: BlockShearInput) -> tuple[float, float, str]:
+    """EC3-1-8 Sec 3.10.2: los DOS terminos llevan factores parciales
+    DISTINTOS — traccion sobre gamma_M2, cortante sobre gamma_M0 (=1.0) — no
+    se puede resumir en un unico Rn dividido por un unico gamma. Devuelve
+    (Rn_kN sin factorizar, Rd_kN correctamente factorizado, modo).
+    """
     import math
     sqrt3 = math.sqrt(3.0)
-    Rn = (inp.Fu_MPa * inp.Ant_mm2
-          + (1.0 / sqrt3) * inp.Fy_MPa * inp.Anv_mm2) / 1000.0
-    return Rn, "fracture"
+    gamma_M2 = 1.25
+    gamma_M0 = 1.0
+    term_tension = inp.Fu_MPa * inp.Ant_mm2
+    term_shear = (1.0 / sqrt3) * inp.Fy_MPa * inp.Anv_mm2
+    Rn = (term_tension + term_shear) / 1000.0
+    Rd = (term_tension / gamma_M2 + term_shear / gamma_M0) / 1000.0
+    return Rn, Rd, "fracture"
 
 
 def _as4100_block(inp: BlockShearInput) -> tuple[float, str]:
@@ -73,10 +82,11 @@ def block_shear(inp: BlockShearInput, code: str = "US") -> BlockShearResult:
         phi = 0.75
         Rd = phi * Rn
     elif code in ("EU", "SG"):
-        Rn, gov = _en1993_block(inp)
-        gamma_M2 = 1.25
-        phi = 1.0 / gamma_M2
-        Rd = Rn / gamma_M2
+        Rn, Rd, gov = _en1993_block(inp)
+        # factor EFECTIVO Rd/Rn: informativo solamente. Los dos terminos de
+        # este modelo llevan gamma distinto (M2 traccion, M0 cortante), asi
+        # que NO es un unico gamma normativo — no lo uses como tal.
+        phi = Rd / Rn if Rn > 0.0 else 0.0
     elif code == "AU":
         Rn, gov = _as4100_block(inp)
         phi = 0.75
