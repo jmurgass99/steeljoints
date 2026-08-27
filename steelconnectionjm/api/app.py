@@ -156,7 +156,7 @@ def root():
     ]}
 
 
-@router.post("/api/connections/bolts/single")
+@router.post("/api/connections/bolts/single", summary="Resistencia de tornillo individual a cortante, tracción y aplastamiento (EN 1993-1-8 / AISC 360)")
 def api_single_bolt(payload: SingleBoltPayload):
     try:
         res = bolts.design_single_bolt(bolts.SingleBoltInput(**payload.model_dump()))
@@ -167,7 +167,7 @@ def api_single_bolt(payload: SingleBoltPayload):
         raise HTTPException(400, str(exc))
 
 
-@router.post("/api/connections/bolts/group")
+@router.post("/api/connections/bolts/group", summary="Capacidad de grupo de tornillos bajo cortante excéntrico (método centro instantáneo)")
 def api_bolt_group(payload: BoltGroupPayload):
     try:
         res = bolts.design_bolt_group(bolts.BoltGroupInput(**payload.model_dump()))
@@ -177,7 +177,7 @@ def api_bolt_group(payload: BoltGroupPayload):
         raise HTTPException(400, str(exc))
 
 
-@router.post("/api/connections/welds/fillet")
+@router.post("/api/connections/welds/fillet", summary="Resistencia de cordones de soldadura en ángulo según método direccional EN 1993-1-8 §4.5.3")
 def api_fillet_weld(payload: FilletWeldPayload):
     try:
         res = welds.design_fillet_weld(welds.FilletWeldInput(**payload.model_dump()))
@@ -189,7 +189,7 @@ def api_fillet_weld(payload: FilletWeldPayload):
         raise HTTPException(400, str(exc))
 
 
-@router.post("/api/connections/end_plate")
+@router.post("/api/connections/end_plate", summary="Unión viga-pilar con chapa frontal atornillada (End Plate) según EN 1993-1-8 / SCI P398")
 def api_end_plate(payload: EndPlatePayload):
     try:
         res = end_plate.design_end_plate(end_plate.EndPlateInput(**payload.model_dump()))
@@ -200,7 +200,7 @@ def api_end_plate(payload: EndPlatePayload):
         raise HTTPException(400, str(exc))
 
 
-@router.post("/api/connections/base_plate")
+@router.post("/api/connections/base_plate", summary="Placa base de columna con pernos de anclaje según AISC DG1 / EN 1993-1-8")
 def api_base_plate(payload: BasePlatePayload):
     try:
         res = base_plate.design_base_plate(base_plate.BasePlateInput(**payload.model_dump()))
@@ -211,7 +211,7 @@ def api_base_plate(payload: BasePlatePayload):
         raise HTTPException(400, str(exc))
 
 
-@router.post("/api/connections/panel_zone")
+@router.post("/api/connections/panel_zone", summary="Resistencia a cortante de la zona de panel del alma del pilar según AISC 360 / AISC 341")
 def api_panel_zone(payload: PanelZonePayload):
     try:
         res = panel_zone.design_panel_zone(
@@ -222,7 +222,7 @@ def api_panel_zone(payload: PanelZonePayload):
         raise HTTPException(400, str(exc))
 
 
-@router.post("/api/connections/splice")
+@router.post("/api/connections/splice", summary="Empalme de vigas y columnas mediante cubrejuntas atornillados según EN 1993-1-8")
 def api_splice(payload: SplicePayload):
     try:
         res = splice.design_splice(splice.SpliceInput(**payload.model_dump()))
@@ -231,7 +231,7 @@ def api_splice(payload: SplicePayload):
         raise HTTPException(400, str(exc))
 
 
-@router.post("/api/connections/clip_angle")
+@router.post("/api/connections/clip_angle", summary="Unión simple a cortante mediante doble angular (Clip Angle / Fin Plate) según AISC 360")
 def api_clip_angle(payload: ClipAnglePayload):
     try:
         res = clip_angle.design_clip_angle(clip_angle.ClipAngleInput(**payload.model_dump()))
@@ -240,7 +240,7 @@ def api_clip_angle(payload: ClipAnglePayload):
         raise HTTPException(400, str(exc))
 
 
-@router.post("/api/connections/rbs")
+@router.post("/api/connections/rbs", summary="Conexión precalificada con sección reducida de viga (RBS / Dogbone) según ANSI/AISC 358-16")
 def api_rbs(payload: RBSPayload):
     try:
         res = rbs.design_rbs(rbs.RBSInput(**payload.model_dump()))
@@ -252,7 +252,7 @@ def api_rbs(payload: RBSPayload):
         raise HTTPException(400, str(exc))
 
 
-@router.post("/api/connections/wuf")
+@router.post("/api/connections/wuf", summary="Conexión precalificada de ala soldada sin refuerzo (WUF-W) según ANSI/AISC 358-16")
 def api_wuf(payload: WUFPayload):
     try:
         res = wuf.design_wuf(wuf.WUFInput(**payload.model_dump()))
