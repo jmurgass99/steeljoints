@@ -73,7 +73,8 @@ def test_golden_traccion_tornillos_aisc_360_tabla_J3_2_A325():
         modulo: 0.75·827·452.38934·4 = 1 122 378.0 N = 1 122.378 kN
 
     DISCREPANCIA REAL (no de redondeo): el valor devuelto es NOMINAL (Rn). El
-    AISC 360-22 §J3.7 exige phi = 0.75 en traccion, luego phi·Rn = 841.78 kN.
+    AISC 360-22 §J3.7 exige phi = 0.75 en traccion (el valor de diseno LRFD se
+    asevera mas abajo, sobre la referencia de la Tabla J3.2).
     Como ``DCR_bolts`` e ``is_safe`` del memo comparan la demanda contra Rn sin
     phi, la verificacion es 1/0.75 = 1.33x del lado INSEGURO. Se asevera abajo.
     """
