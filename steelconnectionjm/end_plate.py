@@ -294,3 +294,66 @@ class EndPlate:
             out["Cpr"] = round(self.Cpr_factor, 4)
             out["Mpr_kNm"] = round(self.Mpr_Nmm / 1e6, 3)
         return out
+
+
+def design_end_plate_from_member_forces(
+    N_kN: float,
+    V_kN: float,
+    M_kNm: float,
+    beam_depth_mm: float,
+    beam_tf_mm: float,
+    beam_bf_mm: float,
+    bolt_grade: str = "A325",
+    bolt_size: Optional[str] = None,
+    plate_thickness_mm: float = 20.0,
+    plate_Fy_MPa: float = 345.0,
+    plate_Fu_MPa: float = 450.0,
+    n_bolt_rows: int = 2,
+    pfo_mm: float = 40.0,
+    pfi_mm: float = 40.0,
+    gage_g_mm: float = 140.0,
+    electrode: str = "E70XX",
+    code: str = "AISC",
+) -> dict[str, Any]:
+    """Diseña conexión atornillada de chapa de testa (end-plate) a partir de esfuerzos seccionales dados (N, V, M).
+
+    Args:
+        N_kN: Esfuerzo axial mayorado (+ tracción, - compresión).
+        V_kN: Cortante mayorado en el extremo.
+        M_kNm: Momento flector mayorado en el extremo.
+    """
+    # Brazo entre alas
+    h0 = max(beam_depth_mm - beam_tf_mm, 10.0)
+    # Si hay tracción axial pura, incrementa la demanda de tracción en las alas
+    M_eff = abs(M_kNm) + (max(N_kN, 0.0) * (h0 / 2.0) * 1e-3)
+
+    ep = EndPlate(
+        Mu=M_eff,
+        Vu=abs(V_kN),
+        beam_depth=beam_depth_mm,
+        beam_tf=beam_tf_mm,
+        beam_bf=beam_bf_mm,
+        bolt_grade=bolt_grade,
+        bolt_size=bolt_size,
+        plate_thickness=plate_thickness_mm,
+        plate_Fy=plate_Fy_MPa,
+        plate_Fu=plate_Fu_MPa,
+        n_bolt_rows=n_bolt_rows,
+        pfo=pfo_mm,
+        pfi=pfi_mm,
+        g=gage_g_mm,
+        electrode=electrode,
+        code=code,
+    )
+    res = ep.design()
+    res["applied_forces"] = {
+        "N_kN": N_kN,
+        "V_kN": V_kN,
+        "M_kNm": M_kNm,
+        "M_effective_kNm": round(M_eff, 3),
+    }
+    return res
+
+
+__all__ = ["EndPlate", "design_end_plate_from_member_forces"]
+
