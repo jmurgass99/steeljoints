@@ -28,6 +28,7 @@ markers = [
     "property: property-based con hypothesis",
     "fastsap: requieren puente FastSAP",
     "dxf: requieren DXFStructuralJm o ezdxf",
+    "characterization: captura el estado ACTUAL de la implementacion (valor obtenido ejecutando el codigo, NO de una fuente normativa)",
 ]
 addopts = "--strict-markers"
 
