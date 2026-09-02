@@ -164,16 +164,30 @@ class EndPlate:
     # ------------------------------------------------------------------
     # Checks
     # ------------------------------------------------------------------
-    def bolt_tension_check(self, phi: float = 0.90) -> dict:
-        """Check bolt tension capacity vs demand (DG4 §3.1)."""
+    def bolt_tension_check(self, phi: float = 0.75) -> dict:
+        """Check bolt tension capacity vs demand with combined tension-shear interaction (AISC 360-16 §J3.7)."""
         T_demand = self.bolt_tension_demand()  # kN
-        # Prefer catalog Fnt × Ab; fall back to Bolt object.
-        if self._Fnt is not None:
-            Rnt = self._Fnt * self.Ab
+        n_total = self.n_bolt_rows * 2
+        Vu_per_bolt_N = self.Vu_N / n_total
+
+        # Combined tension + shear interaction (AISC 360-16 §J3.7 Eq. J3-3a)
+        if self._bolt is not None:
+            phi_Rnt_N = self._bolt.aisc_combined_tension_shear(Vu_per_bolt_N, phi=phi)
+        elif self._Fnt is not None and self._Fnv is not None:
+            Fnt = self._Fnt
+            Fnv = self._Fnv
+            frv = Vu_per_bolt_N / self.Ab
+            Fnt_prime = max(0.0, min(1.3 * Fnt - (Fnt / (phi * Fnv)) * frv, Fnt))
+            phi_Rnt_N = phi * Fnt_prime * self.Ab
         else:
             Rnt = self._bolt.aisc_tension_strength(phi=1.0)
-        phi_Rnt = phi * Rnt / 1000.0  # kN
-        util = T_demand / phi_Rnt if phi_Rnt > 0 else 0.0
+            phi_Rnt_N = phi * Rnt
+
+        phi_Rnt = phi_Rnt_N / 1000.0  # kN
+        if phi_Rnt <= 0.0:
+            util = float("inf") if T_demand > 0.0 else 0.0
+        else:
+            util = T_demand / phi_Rnt
         return {
             "check": "Bolt tension",
             "T_demand_kN": round(T_demand, 3),
@@ -190,7 +204,10 @@ class EndPlate:
             phi_Rnv = phi * self._Fnv * self.Ab
         else:
             phi_Rnv = self._bolt.aisc_shear_strength()
-        util = Vu_per / phi_Rnv if phi_Rnv > 0 else 0.0
+        if phi_Rnv <= 0.0:
+            util = float("inf") if Vu_per > 0.0 else 0.0
+        else:
+            util = Vu_per / phi_Rnv
         return {
             "check": "Bolt shear (Vu)",
             "Vu_per_bolt_kN": round(Vu_per / 1000.0, 3),
@@ -210,7 +227,10 @@ class EndPlate:
         # 1.11 factor for seismic per AISC 358 §6.9.4-1; 1.0 otherwise
         gamma = 1.11 if self.seismic else 1.0
         Mreq = gamma * self.Mu_Nmm
-        util = Mreq / phi_Mn if phi_Mn > 0 else 0.0
+        if phi_Mn <= 0.0:
+            util = float("inf") if Mreq > 0.0 else 0.0
+        else:
+            util = Mreq / phi_Mn
         return {
             "check": "End plate flexure",
             "Yp_mm": round(Yp, 2),

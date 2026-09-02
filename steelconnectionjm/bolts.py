@@ -142,7 +142,7 @@ class Bolt:
         data = self._aisc_data
         Fnt, Fnv = data["Fnt"], data["Fnv"]
         frv = Vuv / self.Ab  # shear stress on bolt
-        Fnt_prime = min(1.3 * Fnt - Fnt / (phi * Fnv) * frv, Fnt)
+        Fnt_prime = max(0.0, min(1.3 * Fnt - (Fnt / (phi * Fnv)) * frv, Fnt))
         return phi * Fnt_prime * self.Ab
 
     # ------------------------------------------------------------------
