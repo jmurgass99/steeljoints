@@ -47,7 +47,15 @@ from steelconnectionjm.end_plate import EndPlate
 
 
 def test_golden_aisc_j3_7_bolt_combined_tension_shear_exact():
-    """GOLDEN. Verificación de AISC 360-16 §J3.7 con valores analíticos cerrados."""
+    """GOLDEN. Verificación de AISC 360-16 §J3.7 con valores analíticos cerrados.
+
+    Fuente Normativa:
+      - AISC 360-16: Specification for Structural Steel Buildings.
+      - Section J3.7: Combined Tension and Shear in Bearing-Type Connections.
+        * Eq. (J3-3a): F'nt = 1.3·Fnt - (Fnt / (φ·Fnv))·frv <= Fnt.
+        * Tabla J3.2: Fnt = 620 MPa (90 ksi), Fnv = 372 MPa (54 ksi) para ASTM A325.
+        * Factor de resistencia φ = 0.75.
+    """
     bolt = Bolt(19.05, "A325", "AISC")
     phi = 0.75
 
@@ -72,7 +80,12 @@ def test_golden_aisc_j3_7_bolt_combined_tension_shear_exact():
 
 
 def test_golden_end_plate_wired_j3_7_dcr_increase():
-    """GOLDEN. Comprueba que EndPlate aplica la interacción J3.7 y eleva el DCR de los pernos."""
+    """GOLDEN. Comprueba que EndPlate aplica la interacción J3.7 y eleva el DCR de los pernos.
+
+    Fuente Normativa:
+      - AISC 360-16: Specification for Structural Steel Buildings.
+      - Section J3.7: Combined Tension and Shear in Bearing-Type Connections, Eq. (J3-3a).
+    """
     # Unión con 4 pernos (2 filas de 2 pernos), Mu = 100 kNm, Vu = 160 kN
     # Vuv por perno = 160 / 4 = 40.0 kN
     ep = EndPlate(

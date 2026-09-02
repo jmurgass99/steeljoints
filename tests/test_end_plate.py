@@ -16,7 +16,13 @@ from steelconnectionjm.codes import aisc358
 # 1. Seismic 4E with Cpr/Mpr applied (AISC 358 §2.4.3 + §6)
 # ---------------------------------------------------------------------------
 def test_seismic_4E_applies_Mpr():
-    """In seismic mode, design moment Mu is replaced by Mpr = Cpr·Ry·Fy·Zx."""
+    """GOLDEN. En modo sísmico el momento de diseño es Mpr = Cpr·Ry·Fy·Zx.
+
+    Fuente Normativa:
+      - AISC 358-16: Prequalified Connections for Special and Intermediate Steel Moment Frames for Seismic Applications.
+      - Chapter 2 §2.4.3: Probable Maximum Moment at Plastic Hinge: Mpr = Cpr·Ry·Fy·Zx.
+      - Chapter 6 §6.8: Extended End-Plate Moment Connections.
+    """
     Zx = 1.5e6   # mm³ (typical W18 beam)
     Fy, Fu = 345.0, 450.0
     ep_static = EndPlate(
