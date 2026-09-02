@@ -1,7 +1,7 @@
-"""Exportador tabular de esfuerzos para IDEA StatiCa Connection (Open Model / Table Contract).
+"""Exporta tabla de esfuerzos de diseño por combinación en formato compatible con IDEA StatiCa (Open Model Loads / CSV).
 
 Genera contratos tabulares en formato JSON y CSV estándar requeridos para importar
-esfuerzos seccionales en IDEA StatiCa por barra, posición de extremo (Begin / End) y combinación de carga.
+esfuerzos seccionales (N, Vy, Vz, Mx, My, Mz) en IDEA StatiCa por barra, posición de extremo (Begin / End) y combinación de carga.
 """
 from __future__ import annotations
 

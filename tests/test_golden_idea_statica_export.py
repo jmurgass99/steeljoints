@@ -1,7 +1,7 @@
-"""Golden test para exportación tabular a IDEA StatiCa (JSON y CSV).
+"""Golden test para exportación tabular de esfuerzos de diseño a IDEA StatiCa (JSON y CSV).
 
 Requisitos:
-1. Contrato JSON con schema estructurado, metadata y listado de fuerzas por barra/extremo/combinación.
+1. Contrato JSON con schema estructurado, metadata y listado de fuerzas (N, Vy, Vz, Mx, My, Mz) por barra/extremo/combinación.
 2. Contrato CSV con encabezados de importación estándar y round-trip determinista.
 """
 from __future__ import annotations
@@ -17,7 +17,7 @@ from steelconnectionjm.integration.idea_statica_export import (
 
 
 def test_golden_idea_statica_export_json_and_csv():
-    """GOLDEN. Validación de contrato de exportación para IDEA StatiCa."""
+    """GOLDEN. Valida exportación de tabla de esfuerzos de diseño por combinación a IDEA StatiCa."""
     forces = [
         IdeaStaticaForceRow(
             member_id="B1",
