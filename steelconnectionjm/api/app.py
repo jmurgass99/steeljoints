@@ -60,6 +60,26 @@ class EndPlatePayload(BaseModel):
     Mu_kNm: float = 100.0
 
 
+class EndPlateMemberForcesPayload(BaseModel):
+    N_kN: float = Field(0.0, description="Esfuerzo axial mayorado (+ tracción, - compresión)")
+    V_kN: float = Field(..., description="Cortante mayorado en el extremo en kN")
+    M_kNm: float = Field(..., description="Momento flector mayorado en el extremo en kNm")
+    beam_depth_mm: float = Field(..., gt=0)
+    beam_tf_mm: float = Field(..., gt=0)
+    beam_bf_mm: float = Field(..., gt=0)
+    bolt_grade: str = "A325"
+    bolt_size: str | None = None
+    plate_thickness_mm: float = 20.0
+    plate_Fy_MPa: float = 345.0
+    plate_Fu_MPa: float = 450.0
+    n_bolt_rows: int = 2
+    pfo_mm: float = 40.0
+    pfi_mm: float = 40.0
+    gage_g_mm: float = 140.0
+    electrode: str = "E70XX"
+    code: str = "AISC"
+
+
 class BasePlatePayload(BaseModel):
     Bp_mm: float = Field(..., gt=0)
     Np_mm: float = Field(..., gt=0)
@@ -147,6 +167,7 @@ def root():
         "/api/connections/bolts/group",
         "/api/connections/welds/fillet",
         "/api/connections/end_plate",
+        "/api/connections/end_plate/from_member_forces",
         "/api/connections/base_plate",
         "/api/connections/panel_zone",
         "/api/connections/splice",
@@ -196,6 +217,15 @@ def api_end_plate(payload: EndPlatePayload):
         return {"Mn_kNm": res.Mn_kNm, "DCR": res.DCR,
                 "plate_thickness_required_mm": res.plate_thickness_required_mm,
                 "notes": res.notes}
+    except Exception as exc:
+        raise HTTPException(400, str(exc))
+
+
+@router.post("/api/connections/end_plate/from_member_forces", summary="Diseño de chapa frontal atornillada a partir de esfuerzos seccionales (N, V, M) según AISC 360 / AISC 358")
+def api_end_plate_from_member_forces(payload: EndPlateMemberForcesPayload):
+    from ..end_plate import design_end_plate_from_member_forces
+    try:
+        return design_end_plate_from_member_forces(**payload.model_dump())
     except Exception as exc:
         raise HTTPException(400, str(exc))
 
