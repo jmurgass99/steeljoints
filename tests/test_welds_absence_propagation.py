@@ -100,12 +100,16 @@ class TestUtilizationAbsentCapacity:
 # ---------------------------------------------------------------------------
 
 class TestUtilizationDegenerateIp:
-    @staticmethod
-    def _degenerate() -> WeldGroup:
-        """polar_moment() == 0 porque welds[0].length == 0 (Ip usa welds[0])."""
-        return WeldGroup(
-            welds=[FilletWeld(8.0, 0.0), FilletWeld(8.0, 200.0)],
-            positions=[(0.0, -100.0), (0.0, 100.0)],
+    class _DegenerateGroup(WeldGroup):
+        def polar_moment(self) -> float:
+            return 0.0
+
+    @classmethod
+    def _degenerate(cls) -> WeldGroup:
+        """Grupo sintético con polar_moment() == 0 para verificar propagación de ausencia."""
+        return cls._DegenerateGroup(
+            welds=[FilletWeld(8.0, 200.0)],
+            positions=[(0.0, 0.0)],
         )
 
     def test_precondition_ip_is_zero(self):

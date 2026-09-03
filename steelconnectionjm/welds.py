@@ -102,18 +102,27 @@ class FilletWeld:
         Fw_Rd = fu / (beta_w * sqrt(3) * gamma_M2) * self.a * self.length
         return Fw_Rd
 
-    def min_size(self, t_thicker: float) -> float:
+    def min_size(self, t_thinner: float | None = None, t_thicker: float | None = None) -> float:
         """
-        Minimum fillet weld size per AISC Table J2.4 or EC3 §4.5.2 [mm].
+        Minimum fillet weld size per AISC 360-22 Table J2.4 [mm].
 
-        t_thicker : thickness of thicker connected part [mm]
+        Parameters
+        ----------
+        t_thinner : float
+            Material thickness of thinner part joined [mm] (AISC 360-22 Table J2.4
+            is indexed by the thinner connected part).
+        t_thicker : float, optional
+            Deprecated alias for backward compatibility.
         """
+        t = t_thinner if t_thinner is not None else t_thicker
+        if t is None:
+            raise ValueError("Must provide material thickness of thinner part joined")
         # AISC Table J2.4
-        if t_thicker <= 6.35:
+        if t <= 6.35:
             return 3.175   # 1/8"
-        elif t_thicker <= 12.7:
+        elif t <= 12.7:
             return 4.762   # 3/16"
-        elif t_thicker <= 19.05:
+        elif t <= 19.05:
             return 6.35    # 1/4"
         else:
             return 8.0     # 5/16"
@@ -154,15 +163,15 @@ class WeldGroup:
     def polar_moment(self) -> float:
         """Ip of the weld group about its centroid [mm⁴ — as line element]."""
         Ip = 0.0
-        for Aw, (x, y), ang in zip(self.Aw_list, self.positions, self.angles):
+        for w, Aw, (x, y), ang in zip(self.welds, self.Aw_list, self.positions, self.angles):
             rx = x - self.cx
             ry = y - self.cy
             ang_r = radians(ang)
-            # Length of weld segment
-            L = self.welds[0].length  # simplified: assume same length
-            a = self.welds[0].a
+            # Length and throat of this specific weld segment
+            L = w.length
+            a = w.a
             # Ip contribution of segment (thin rect about its centroid + parallel axis)
-            Ip_self = a * L**3 / 12 * (sin(ang_r))**2 + a * L**3 / 12 * (cos(ang_r))**2
+            Ip_self = a * (L**3) / 12.0 * ((sin(ang_r))**2 + (cos(ang_r))**2)
             Ip += Ip_self + Aw * (rx**2 + ry**2)
         return Ip
 
