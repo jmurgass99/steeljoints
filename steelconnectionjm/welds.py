@@ -10,6 +10,8 @@ import numpy as np
 from dataclasses import dataclass
 from math import sqrt, sin, cos, pi, radians
 
+from jmstructural_common.audit_status import CalculationStatus, resolve_status
+
 
 # Electrode strengths [MPa]
 _ELECTRODE_FExx: dict[str, float] = {
@@ -80,8 +82,23 @@ class FilletWeld:
         ----------
         fu : float  ultimate strength of weaker connected part [MPa]
         gamma_M2 : float  partial factor (default 1.25)
+
+        Raises
+        ------
+        ValueError
+            If ``steel_grade`` is absent or not in EN 1993-1-8:2005 Table 4.1.
+            β_w has no normative default: assuming one silently inflates
+            Fw,Rd (assuming S275's 0.85 for an S460 joint overstates the
+            design resistance by 1.00/0.85 = +17.6 %).
         """
-        beta_w = _EC3_BETA_W.get(self.steel_grade, 0.85)
+        grade = "" if self.steel_grade is None else str(self.steel_grade).strip().upper()
+        beta_w = _EC3_BETA_W.get(grade)
+        if beta_w is None:
+            raise ValueError(
+                f"Grado de acero desconocido para beta_w (EN 1993-1-8:2005 "
+                f"Tabla 4.1): {self.steel_grade!r}. "
+                f"Conocidos: {sorted(_EC3_BETA_W)}"
+            )
         Fw_Rd = fu / (beta_w * sqrt(3) * gamma_M2) * self.a * self.length
         return Fw_Rd
 
@@ -159,9 +176,27 @@ class WeldGroup:
         Vu : float  applied shear [N]
         Mu : float  moment [N·mm]
         phi_Rn_per_unit : float  design strength per mm of weld [N/mm]
+
+        Notes
+        -----
+        La ausencia se propaga como ausencia. Si falta la capacidad de diseño
+        (``phi_Rn_per_unit <= 0`` o garganta nula) o el momento aplicado no es
+        distribuible (``Ip <= 0`` con ``Mu != 0``), la comprobación NO se hizo:
+        se emite ``utilization = inf`` / ``NO_CALCULADO`` / ``is_ok = False``,
+        nunca un ``0`` que se lee como holgura. Mismo idioma que
+        ``weld_group.WeldGroupElastic.utilization`` para esta misma magnitud.
         """
         total_Aw = sum(self.Aw_list)
         Ip = self.polar_moment()
+        a0 = self.welds[0].a  # garganta de referencia [mm]
+
+        missing_inputs: list[str] = []
+        if not (phi_Rn_per_unit > 0):
+            missing_inputs.append("phi_Rn_per_unit")
+        if not (a0 > 0):
+            missing_inputs.append("weld_throat_a")
+        if Mu != 0.0 and not (Ip > 0):
+            missing_inputs.append("polar_moment_Ip")
 
         fv_direct = Vu / total_Aw  # direct shear stress [N/mm²]
 
@@ -170,14 +205,22 @@ class WeldGroup:
             rx = x - self.cx
             ry = y - self.cy
             r = sqrt(rx**2 + ry**2)
-            ft = Mu * r / Ip if Ip > 0 else 0
-            # Combine (conservative: add magnitudes)
-            f_total = sqrt(fv_direct**2 + ft**2 + 2 * fv_direct * ft * (ry / r if r > 0 else 0))
+            # Ip <= 0 solo llega aquí con Mu == 0 (si no, ya está en missing).
+            ft = Mu * r / Ip if Ip > 0 else 0.0
+            # r == 0 es el centroide: ahí ft == 0 y el término cruzado se
+            # anula de veras — coseno director legítimamente nulo.
+            f_total = sqrt(fv_direct**2 + ft**2 + 2 * fv_direct * ft * (ry / r if r > 0 else 0.0))
             max_f = max(max_f, f_total)
 
-        util = max_f / (phi_Rn_per_unit / self.welds[0].a) if (phi_Rn_per_unit / self.welds[0].a) > 0 else 0
+        if missing_inputs:
+            util = float("inf")
+        else:
+            util = max_f / (phi_Rn_per_unit / a0)
+        status = resolve_status(util, missing_inputs=missing_inputs)
         return {
             "max_stress_N_mm2": round(max_f, 3),
             "utilization": round(util, 4),
-            "is_ok": util <= 1.0,
+            "is_ok": status is CalculationStatus.CALCULADO_CUMPLE,
+            "status": status,
+            "missing_inputs": missing_inputs,
         }
