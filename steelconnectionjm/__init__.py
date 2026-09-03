@@ -17,6 +17,7 @@ from .shear_tab import ShearTab
 from .end_plate import EndPlate
 from .base_plate import BasePlate
 from .block_shear import block_shear_strength
+from .block_shear_multi import block_shear, BlockShearInput, BlockShearResult
 
 # Nuevos módulos
 from .bolt_group import BoltGroupICR, rectangular_pattern
@@ -38,6 +39,9 @@ __all__ = [
     "ShearTab",
     "EndPlate",
     "BasePlate",
+    "block_shear",
+    "BlockShearInput",
+    "BlockShearResult",
     "block_shear_strength",
     # New
     "BoltGroupICR", "rectangular_pattern",

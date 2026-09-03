@@ -54,7 +54,9 @@ class TestBolt:
 
     def test_ec3_8_8_shear_strength(self):
         b = Bolt(20.0, "8.8", "EC3")
-        assert b.ec3_shear_strength() > 0
+        # EN 1993-1-8 Tabla 3.4 con As = 0.75*Ab = 0.75*314.2 = 235.65 mm2, fub=800 MPa, alpha_v=0.6, gamma_M2=1.25:
+        # Fv_Rd = 0.6 * 800 * 235.65 / 1.25 = 90489.6 N
+        assert b.ec3_shear_strength() == pytest.approx(90489.6, rel=1e-4)
 
     def test_ec3_10_9_stronger_than_8_8(self):
         b88  = Bolt(20.0, "8.8",  "EC3")

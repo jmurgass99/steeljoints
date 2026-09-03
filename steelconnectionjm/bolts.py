@@ -160,11 +160,13 @@ class Bolt:
         Fv,Rd (shear) per EC3-1-8 §3.6.1 Table 3.4 [N].
         Fv,Rd = 0.6 · fub · A / γM2  (grades 4.6, 5.6, 8.8)
         Fv,Rd = 0.5 · fub · A / γM2  (grades 6.8, 10.9)
+        Delega en la primitiva canónica bolt_shear_Rd.
         """
+        from .codes.ec3_1_8 import bolt_shear_Rd
         fub = self._ec3_data["fub"]
         alpha_v = 0.5 if self.grade in ("6.8", "10.9") else 0.6
         As = self.Ab * SHEAR_AREA_FACTOR if self.threads_in_shear_plane else self.Ab
-        return alpha_v * fub * As * self.n_shear_planes / gamma_M2
+        return bolt_shear_Rd(A_mm2=As, fub_MPa=fub, alpha_v=alpha_v, gamma_M2=gamma_M2) * self.n_shear_planes
 
     def ec3_tension_strength(self, gamma_M2: float = 1.25) -> float:
         """Ft,Rd (tension) per EC3-1-8 §3.6.1 [N]."""
