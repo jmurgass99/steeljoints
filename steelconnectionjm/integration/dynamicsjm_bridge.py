@@ -68,8 +68,8 @@ class BridgeReport:
     critical_beam: str = ""
 
 
-def verify_connections_vs_demand(connections, demands,
-                                     safety_margin=1.0):
+def verify_connections_vs_demand(connections: list[RBSConnectionDefinition], demands: list[BeamDynamicDemand],
+                                     safety_margin: float = 1.0):
     """Verifica una lista de conexiones contra una lista de demandas.
 
     Args:
