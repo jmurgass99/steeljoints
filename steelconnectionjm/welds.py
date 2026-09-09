@@ -225,7 +225,24 @@ class WeldGroup:
             util = float("inf")
         else:
             util = max_f / (phi_Rn_per_unit / a0)
-        status = resolve_status(util, missing_inputs=missing_inputs)
+        # Proof Obligation closed-by-default: este calculo declara, condicion por
+        # condicion, que verifico. Nada de `True` de cortesia -- cada una sale de un
+        # predicado real sobre los datos de la soldadura.
+        #
+        # `reinforcement_present` es True y esta documentado: una comprobacion de
+        # cordon de soldadura no toma armadura como input, asi que no puede faltar
+        # aqui. `material_present` es la resistencia de calculo del cordon
+        # (`phi_Rn_per_unit`), que es el dato derivado del material en este modulo.
+        status = resolve_status(
+            util,
+            missing_inputs=missing_inputs,
+            demand_present=(Vu != 0.0 or Mu != 0.0),
+            capacity_present=phi_Rn_per_unit > 0,
+            material_present=phi_Rn_per_unit > 0,
+            analysis_executed=bool(self.welds) and total_Aw > 0,
+            geometry_present=a0 > 0 and total_Aw > 0,
+            reinforcement_present=True,
+        )
         return {
             "max_stress_N_mm2": round(max_f, 3),
             "utilization": round(util, 4),
