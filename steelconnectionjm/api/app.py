@@ -153,16 +153,30 @@ class WUFPayload(BaseModel):
     beam_Zx_mm3: float = Field(..., gt=0)
     beam_Fy_MPa: float = 345.0
     beam_Fu_MPa: float = 450.0
-    col_d_mm: float = 350.0
-    col_bf_mm: float = 350.0
-    col_tf_mm: float = 18.0
-    col_tw_mm: float = 11.0
-    col_Zx_mm3: float = 4_000_000.0
-    col_Fy_MPa: float = 345.0
+    # Columna SIN defaults: antes el schema prometia d=350, bf=350, tf=18, tw=11,
+    # Zx=4e6, Fy=345, y un cliente que mandaba solo la viga recibia SCWB y zona
+    # de panel de una columna que no existia. Sin columna -> NO_CALCULADO.
+    col_d_mm: float | None = Field(None, gt=0, description="Peralte de columna, mm")
+    col_bf_mm: float | None = Field(None, gt=0, description="Ancho de ala de columna, mm")
+    col_tf_mm: float | None = Field(None, gt=0, description="Espesor de ala de columna, mm")
+    col_tw_mm: float | None = Field(None, gt=0, description="Espesor de alma de columna, mm")
+    col_Zx_mm3: float | None = Field(None, gt=0, description="Modulo plastico de columna, mm3")
+    col_Fy_MPa: float | None = Field(None, gt=0, description="Limite elastico de columna, MPa")
     beam_length_m: float = 6.0
     Ry: float = 1.1
-    Mu_demand_kNm: float = 0.0
-    Vu_demand_kN: float = 0.0
+    Mu_demand_kNm: float | None = Field(
+        None,
+        description=("Momento mayorado de demanda, kN.m. Omitido o null = no suministrado "
+                     "(NO_CALCULADO). El signo se descarta: la conexion es simetrica. 0.0 no "
+                     "es verificable. NaN/inf = REQUIERE_REVISION."),
+    )
+    Vu_demand_kN: float | None = Field(
+        None, description="Cortante de demanda, kN. Este servicio NO comprueba cortante: "
+                          "se acepta por compatibilidad y no participa en el veredicto.")
+    # Axil de columna para el SCWB (AISC 341 E3-1): M*pc = Zc Fyc (1 - Pu/Py). Sin
+    # los dos, el SCWB publicado es la cota superior con Pu = 0 y no puede firmar.
+    Pu_col_kN: float | None = Field(None, ge=0, description="Axil mayorado de columna, kN (compresion +)")
+    Py_col_kN: float | None = Field(None, gt=0, description="Axil de plastificacion de columna Ag*Fy, kN")
 
 
 router = APIRouter()
@@ -300,7 +314,10 @@ def api_wuf(payload: WUFPayload):
                 "is_compact": res.is_compact, "scwb_ratio": res.scwb_ratio,
                 "pz_Vn_kN": res.pz_Vn_kN, "pz_DCR": res.pz_DCR,
                 "weld_capacity_kN": res.weld_capacity_kN,
-                "DCR": res.DCR, "status": res.status, "notes": res.notes}
+                "DCR": res.DCR, "status": res.status,
+                "calculation_status": str(res.calculation_status),
+                "missing_inputs": list(res.missing_inputs),
+                "notes": res.notes}
     except Exception as exc:
         raise HTTPException(400, str(exc))
 
