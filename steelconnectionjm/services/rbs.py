@@ -2,6 +2,10 @@
 from __future__ import annotations
 from dataclasses import dataclass, field
 
+from jmstructural_common.audit_status import CalculationStatus, resolve_status
+
+from ._demanda import clasificar_momento, estado_heredado, nota_de_signo
+
 
 @dataclass(frozen=True)
 class RBSInput:
@@ -18,7 +22,11 @@ class RBSInput:
     L_clear_m: float = 6.0    # luz libre entre caras de columna
     wu_kN_per_m: float = 0.0  # carga gravitacional uniforme factorada
     Ry: float = 1.1           # factor expected/nominal AISC 341 Tabla A3.1
-    Mu_demand_kNm: float = 0.0  # momento de demanda para calculo DCR
+    # Momento de demanda para el DCR. `None` = no suministrado (AC-03): antes el
+    # default era 0.0, y un cero es indistinguible de "no lo se" -- el DCR salia
+    # 0.0 y el estado "OK" para una demanda ausente, nula, negativa o NaN. Se
+    # acepta con signo: la RBS es simetrica y se evalua |Mu| (ver `_demanda`).
+    Mu_demand_kNm: float | None = None
 
 
 @dataclass(frozen=True)
@@ -27,10 +35,13 @@ class RBSResult:
     M_pr_kNm: float           # momento probable en rotula plastica
     V_pr_kN: float            # cortante probable en rotula plastica
     M_f_kNm: float            # momento en cara de columna
-    DCR: float                # demand-capacity ratio
-    status: str               # "OK" | "NG"
-    is_geometry_ok: bool       # cumple limites a, b, c AISC 358 s5.8
+    DCR: float | None         # |Mu| / M_f; None si no hay demanda evaluable
+    status: str               # "OK" | "NG" | "UNKNOWN" (heredado; sigue al canonico)
+    is_geometry_ok: bool      # cumple limites a, b, c AISC 358 s5.8
     notes: list[str] = field(default_factory=list)
+    # Veredicto canonico (Proof Obligation closed-by-default). Nace NO_CALCULADO.
+    calculation_status: CalculationStatus = CalculationStatus.NO_CALCULADO
+    missing_inputs: list[str] = field(default_factory=list)
 
 
 def design_rbs(inp: RBSInput) -> RBSResult:
@@ -40,6 +51,13 @@ def design_rbs(inp: RBSInput) -> RBSResult:
     M_pr  = C_pr * R_y * F_y * Z_RBS       C_pr = 1.15
     V_pr  = 2*M_pr / L_h + wu*L_clear/2
     M_f   = M_pr + V_pr * S_h
+    DCR   = |Mu| / M_f                    solo con demanda finita y no nula
+
+    Estados de la demanda (contrato AC-03, ver `_demanda.clasificar_momento`):
+    MISSING y ZERO -> NO_CALCULADO con el motivo en `missing_inputs`;
+    INVALID (NaN, +-inf) -> REQUIERE_REVISION y `DCR=None`;
+    POSITIVE -> comparacion real. La geometria fuera de s5.8.1 deja la conexion
+    fuera del alcance de la precalificacion -> REQUIERE_REVISION, nunca CUMPLE.
     """
     if inp.d_mm <= 0 or inp.bf_mm <= 0 or inp.tf_mm <= 0:
         raise ValueError("d, bf, tf deben ser positivos")
@@ -56,6 +74,13 @@ def design_rbs(inp: RBSInput) -> RBSResult:
 
     # Modulo plastico reducido  AISC 358 Eq. 5.8-4
     Z_RBS = inp.Zx_mm3 - 2.0 * inp.c_mm * inp.tf_mm * (inp.d_mm - inp.tf_mm)
+    if Z_RBS <= 0:
+        # Capacidad INVALIDA, no "muy pequena": el corte se lleva la seccion. Aqui
+        # habia un `DCR = 99.0` fabricado para M_f <= 0; un numero inventado no
+        # es un veredicto.
+        raise ValueError(
+            f"Z_RBS = {Z_RBS:.0f} mm3 <= 0: el corte c={inp.c_mm} mm vacia la seccion "
+            f"(Zx={inp.Zx_mm3:.0f}); la capacidad no es calculable")
 
     # Momento probable  C_pr = 1.15 (AISC 358 s2.4.3)
     C_pr = 1.15
@@ -76,14 +101,6 @@ def design_rbs(inp: RBSInput) -> RBSResult:
     # Momento en cara de columna
     M_f_kNm = M_pr_kNm + V_pr_kN * (S_h_mm / 1000.0)
 
-    # DCR basado en demanda suministrada
-    if inp.Mu_demand_kNm > 0:
-        DCR = inp.Mu_demand_kNm / M_f_kNm if M_f_kNm > 0 else 99.0
-    else:
-        DCR = 0.0
-
-    status = "OK" if DCR <= 1.0 else "NG"
-
     # Verificacion geometria AISC 358 s5.8.1
     a_min, a_max = 0.5 * inp.bf_mm, 0.75 * inp.bf_mm
     b_min, b_max = 0.65 * inp.d_mm, 0.85 * inp.d_mm
@@ -94,12 +111,49 @@ def design_rbs(inp: RBSInput) -> RBSResult:
         and c_min <= inp.c_mm <= c_max
     )
 
+    # ------- DCR: estado de la demanda declarado junto al calculo -------
+    dem = clasificar_momento(inp.Mu_demand_kNm, nombre="Mu_demand_kNm")
+    missing_inputs: list[str] = [] if dem.presente else [dem.motivo]
+    capacidad_ok = M_f_kNm > 0.0
+    if dem.es_evaluable and capacidad_ok:
+        util: float | None = dem.magnitud / M_f_kNm
+        DCR: float | None = util
+    elif dem.estado == "INVALID":
+        util, DCR = float("nan"), None      # no finito -> REQUIERE_REVISION
+    else:
+        util, DCR = None, None
+    if not capacidad_ok:
+        missing_inputs.append(f"M_f = {M_f_kNm:.1f} kN.m no es una capacidad positiva")
+
+    # Proof Obligation closed-by-default. `reinforcement_present=True` esta
+    # documentado: una conexion de acero no toma armadura como input, asi que no
+    # puede faltar aqui. `geometry_present`/`material_present` son las
+    # validaciones de arriba (todas las magnitudes se exigen positivas).
+    calculation_status = resolve_status(
+        util,
+        missing_inputs=missing_inputs,
+        demand_present=dem.presente,
+        capacity_present=capacidad_ok,
+        analysis_executed=True,
+        geometry_present=True,
+        material_present=True,
+        reinforcement_present=True,
+        unsupported_calc=not is_geometry_ok,
+    )
+    status = estado_heredado(calculation_status)
+
+    sin_veredicto = list(missing_inputs)
+    if dem.estado == "INVALID":
+        sin_veredicto.append(dem.motivo)
     notes = [
         f"Z_RBS = {Z_RBS:.0f} mm3 ({Z_RBS / inp.Zx_mm3 * 100:.1f}% Z_x)",
         f"M_pr = {M_pr_kNm:.1f} kN.m (C_pr={C_pr}, Ry={inp.Ry})",
         f"V_pr = {V_pr_kN:.1f} kN",
         f"M_f (cara columna) = {M_f_kNm:.1f} kN.m",
-        f"Geometria s5.8.1: {'OK' if is_geometry_ok else 'FUERA DE LIMITES'}",
+        "Geometria s5.8.1: " + ("OK" if is_geometry_ok else
+                                "FUERA DE LIMITES (fuera del alcance de la precalificacion)"),
+        *nota_de_signo(dem, nombre="Mu_demand_kNm"),
+        *[f"Sin veredicto: {m}" for m in sin_veredicto],
     ]
 
     return RBSResult(
@@ -111,4 +165,6 @@ def design_rbs(inp: RBSInput) -> RBSResult:
         status=status,
         is_geometry_ok=is_geometry_ok,
         notes=notes,
+        calculation_status=calculation_status,
+        missing_inputs=missing_inputs,
     )

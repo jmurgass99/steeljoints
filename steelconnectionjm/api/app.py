@@ -134,7 +134,15 @@ class RBSPayload(BaseModel):
     L_clear_m: float = 6.0
     wu_kN_per_m: float = 0.0
     Ry: float = 1.1
-    Mu_demand_kNm: float = 0.0
+    # AC-03: antes `float = 0.0`, y el schema publicado hacia que un cliente
+    # generado mandase 0.0 sin haber medido nada -> DCR 0.0 -> "OK". Ausente
+    # (`null` u omitido) es NO_CALCULADO; se acepta con signo (|Mu|).
+    Mu_demand_kNm: float | None = Field(
+        None,
+        description=("Momento mayorado de demanda en cara de columna, kN.m. Omitido o "
+                     "null = no suministrado (NO_CALCULADO). El signo se descarta: la "
+                     "RBS es simetrica. 0.0 no es verificable. NaN/inf = REQUIERE_REVISION."),
+    )
 
 
 class WUFPayload(BaseModel):
@@ -277,6 +285,8 @@ def api_rbs(payload: RBSPayload):
         return {"Z_RBS_mm3": res.Z_RBS_mm3, "M_pr_kNm": res.M_pr_kNm,
                 "V_pr_kN": res.V_pr_kN, "M_f_kNm": res.M_f_kNm,
                 "DCR": res.DCR, "status": res.status,
+                "calculation_status": str(res.calculation_status),
+                "missing_inputs": list(res.missing_inputs),
                 "is_geometry_ok": res.is_geometry_ok, "notes": res.notes}
     except Exception as exc:
         raise HTTPException(400, str(exc))

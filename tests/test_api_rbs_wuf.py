@@ -43,7 +43,14 @@ def test_rbs_valid_basic():
     assert data["M_f_kNm"] > data["M_pr_kNm"]
     assert data["Z_RBS_mm3"] < 3_050_000.0
     assert data["is_geometry_ok"] is True
-    assert data["status"] == "OK"
+    # AC-03: este test afirmaba `status == "OK"` con un payload SIN momento de
+    # demanda, es decir, dejaba escrito el defecto (ausencia -> DCR 0.0 -> OK).
+    # Sin demanda no hay veredicto; el caso valido con demanda esta en
+    # test_rbs_moment_contract.py.
+    assert "Mu_demand_kNm" not in _rbs_valid_payload()
+    assert data["status"] != "OK"
+    assert data["calculation_status"] == "NO_CALCULADO"
+    assert data["DCR"] is None
 
 
 def test_rbs_geometry_out_of_limits():

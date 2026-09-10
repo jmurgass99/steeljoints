@@ -7,12 +7,25 @@ amplificada por capacity design.
 
 Cliente dynamicsjm duck-typed: la demanda llega como dataclass simple,
 no se importa dynamicsjm directamente.
+
+Contrato de la demanda (AC-03): `M_Ed_kNm` se clasifica junto al calculo como
+MISSING / ZERO / INVALID / POSITIVE (ver `services._demanda`). Antes
+`util = M_Ed / M_pr` y `is_safe = util <= 1.0`, asi que un momento NEGATIVO de
+cualquier magnitud daba `util < 0` y firmaba, un cero firmaba, y un NaN contaba
+como incumplimiento. Ahora `is_safe` es exactamente `calculation_status is
+CALCULADO_CUMPLE`, el signo se descarta con nota (la RBS es simetrica) y lo que no
+tiene veredicto se cuenta aparte (`n_sin_veredicto`), ni como seguro ni como
+inseguro.
 """
 from __future__ import annotations
 import logging
+import math
 from dataclasses import dataclass, field
 
+from jmstructural_common.audit_status import CalculationStatus, resolve_status
+
 from ..memos.rbs_aisc358 import rbs_aisc358_memo, RBSDesignResult
+from ..services._demanda import clasificar_momento, nota_de_signo
 
 log = logging.getLogger("steelconnectionjm.dynamicsjm_bridge")
 
@@ -21,7 +34,7 @@ log = logging.getLogger("steelconnectionjm.dynamicsjm_bridge")
 class BeamDynamicDemand:
     """Demanda dinamica en una viga (envelope de un analisis dinamico)."""
     beam_id: str
-    M_Ed_kNm: float            # momento solicitante max (kN.m)
+    M_Ed_kNm: float            # momento solicitante max (kN.m); se evalua |M_Ed|
     V_Ed_kN: float              # cortante max (kN)
     analysis_label: str = ""    # 'pushover' | 'IDA' | etc.
 
@@ -50,10 +63,13 @@ class ConnectionCheckRow:
     beam_id: str
     M_demand_kNm: float
     M_pr_capacity_kNm: float
-    utilization_ratio: float     # M_demand / M_pr (<=1.0 OK)
-    is_safe: bool
+    utilization_ratio: float | None   # |M_demand| / M_pr; None sin demanda evaluable
+    is_safe: bool                     # == calculation_status is CALCULADO_CUMPLE
     geometry_ok: bool
     notes: list[str] = field(default_factory=list)
+    # Veredicto canonico (closed-by-default). Nace NO_CALCULADO.
+    calculation_status: CalculationStatus = CalculationStatus.NO_CALCULADO
+    missing_inputs: list[str] = field(default_factory=list)
 
 
 @dataclass
@@ -66,6 +82,9 @@ class BridgeReport:
     rows: list[ConnectionCheckRow] = field(default_factory=list)
     max_utilization: float = 0.0
     critical_beam: str = ""
+    # Filas sin veredicto (NO_CALCULADO / REQUIERE_REVISION): ni seguras ni
+    # inseguras. n_safe + n_unsafe + n_sin_veredicto == n_total.
+    n_sin_veredicto: int = 0
 
 
 def verify_connections_vs_demand(connections: list[RBSConnectionDefinition], demands: list[BeamDynamicDemand],
@@ -112,36 +131,85 @@ def verify_connections_vs_demand(connections: list[RBSConnectionDefinition], dem
         )
 
         capacity_with_margin = rbs.M_pr_kNm / safety_margin
-        util = d.M_Ed_kNm / capacity_with_margin if capacity_with_margin > 0 else float("inf")
-        is_safe = util <= 1.0 and rbs.is_geometry_ok
+        capacidad_ok = capacity_with_margin > 0
+        dem = clasificar_momento(d.M_Ed_kNm, nombre=f"M_Ed_kNm[{d.beam_id}]")
+        missing_inputs: list[str] = [] if dem.presente else [dem.motivo]
+        if not capacidad_ok:
+            missing_inputs.append(
+                f"M_pr = {rbs.M_pr_kNm:.1f} kN.m no es una capacidad positiva")
+
+        if dem.es_evaluable and capacidad_ok:
+            util: float | None = dem.magnitud / capacity_with_margin
+        elif dem.estado == "INVALID":
+            util = float("nan")                 # no finito -> REQUIERE_REVISION
+        else:
+            util = None
+
+        # Proof Obligation closed-by-default. `analysis_executed`: la evaluacion RBS
+        # (`rbs_aisc358_memo`) acaba de ejecutarse en esta misma llamada.
+        # `reinforcement_present=True` documentado: conexion de acero, sin armadura.
+        # La geometria fuera de AISC 358 s5.8.1 deja la conexion fuera del alcance
+        # de la precalificacion: REQUIERE_REVISION, no "OK con aviso".
+        status = resolve_status(
+            util,
+            missing_inputs=missing_inputs,
+            demand_present=dem.presente,
+            capacity_present=capacidad_ok,
+            analysis_executed=True,
+            geometry_present=True,
+            material_present=conn.Fy > 0,
+            reinforcement_present=True,
+            unsupported_calc=not rbs.is_geometry_ok,
+        )
+        is_safe = status is CalculationStatus.CALCULADO_CUMPLE
+        util_publicado = util if (util is not None and math.isfinite(util)) else None
+
+        if status is CalculationStatus.CALCULADO_CUMPLE:
+            veredicto_txt = "OK"
+        elif status is CalculationStatus.CALCULADO_FALLA:
+            veredicto_txt = "NO CUMPLE"
+        else:
+            veredicto_txt = f"SIN VEREDICTO ({status})"
+        notes = [
+            f"M_Ed = {d.M_Ed_kNm!r} vs M_pr = {rbs.M_pr_kNm:.1f} kN.m",
+            (f"Utilization = {util_publicado * 100:.1f}% ({veredicto_txt})"
+             if util_publicado is not None else f"Utilization = n/a ({veredicto_txt})"),
+            f"safety_margin extra aplicado = {safety_margin}",
+            *nota_de_signo(dem, nombre="M_Ed_kNm"),
+            *[f"Sin veredicto: {m}" for m in missing_inputs],
+            *([f"Sin veredicto: {dem.motivo}"] if dem.estado == "INVALID" else []),
+            *([] if rbs.is_geometry_ok else
+              ["Geometria fuera de AISC 358 s5.8.1: fuera del alcance de la precalificacion"]),
+        ]
 
         row = ConnectionCheckRow(
             beam_id=d.beam_id,
             M_demand_kNm=d.M_Ed_kNm,
             M_pr_capacity_kNm=rbs.M_pr_kNm,
-            utilization_ratio=util,
+            utilization_ratio=util_publicado,
             is_safe=is_safe,
             geometry_ok=rbs.is_geometry_ok,
-            notes=[
-                f"M_Ed = {d.M_Ed_kNm:.1f} vs M_pr = {rbs.M_pr_kNm:.1f} kN.m",
-                f"Utilization = {util*100:.1f}% ({'OK' if is_safe else 'NO CUMPLE'})",
-                f"safety_margin extra aplicado = {safety_margin}",
-            ],
+            notes=notes,
+            calculation_status=status,
+            missing_inputs=missing_inputs,
         )
         report.rows.append(row)
         report.n_total += 1
-        if is_safe:
+        if status is CalculationStatus.CALCULADO_CUMPLE:
             report.n_safe += 1
-        else:
+        elif status is CalculationStatus.CALCULADO_FALLA:
             report.n_unsafe += 1
+        else:
+            report.n_sin_veredicto += 1
         if not rbs.is_geometry_ok:
             report.n_geometry_violations += 1
-        if util > report.max_utilization:
-            report.max_utilization = util
+        if util_publicado is not None and util_publicado > report.max_utilization:
+            report.max_utilization = util_publicado
             report.critical_beam = d.beam_id
 
     log.info(
-        "verify_connections: %d/%d safe (max util = %.2f en %s)",
-        report.n_safe, report.n_total, report.max_utilization, report.critical_beam,
+        "verify_connections: %d/%d safe, %d sin veredicto (max util = %.2f en %s)",
+        report.n_safe, report.n_total, report.n_sin_veredicto,
+        report.max_utilization, report.critical_beam,
     )
     return report
