@@ -19,7 +19,9 @@ still works. New optional arguments (``bolt_size``, ``electrode``, ``seismic``,
 from __future__ import annotations
 from dataclasses import dataclass, field
 from math import sqrt, pi
-from typing import Optional
+# `Any` se usaba en la firma de `design_end_plate_from_member_forces` sin
+# importarlo: `typing.get_type_hints` daba NameError.
+from typing import Any, Optional
 
 from . import catalog
 from .codes import aisc358
