@@ -125,10 +125,9 @@ class BasePlate:
             T_per_N = T_total_N / self.n_anchors
             note = "Uplift/tension case — bolts resist full tension + moment couple"
         else:
-            e = abs(self.Mu_Nmm) / max(abs(self.Pu_N), 1)  # eccentricity
-            # Kern limit
+            # Kern limit: |Mu| <= (N/6)·|Pu| equivale a e <= N/6 sin indeterminacion en Pu=0
             kern = self.plate_N / 6
-            if e <= kern:
+            if abs(self.Mu_Nmm) <= kern * abs(self.Pu_N):
                 # Full compression — no anchor tension needed
                 return {
                     "check": "Anchor bolt tension",
@@ -138,8 +137,8 @@ class BasePlate:
                     "is_ok": True,
                     "note": "Full compression — no tension in anchors",
                 }
-            # Simplified linear pressure: T = (e - N/6) × Pu / (N/2)
-            T_total_N = (e - kern) / (self.plate_N / 2 - kern) * abs(self.Pu_N)
+            # Simplified linear pressure: T = (|Mu| - (N/6)·|Pu|) / (N/2 - N/6)
+            T_total_N = (abs(self.Mu_Nmm) - kern * abs(self.Pu_N)) / (self.plate_N / 2 - kern)
             T_total_N = max(T_total_N, 0)
             T_per_N = T_total_N / self.n_anchors
             note = "Moment eccentricity > N/6 — tension zone exists"
