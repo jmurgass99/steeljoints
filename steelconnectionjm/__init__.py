@@ -90,3 +90,30 @@ __all__ += [
     "verify_deep_shear_aci318_25",
 ]
 
+from .ideastatica_iom import (
+    IdeaOpenModelConnection,
+    IomCrossSection,
+    IomLoadCase,
+    IomMember,
+    IomMemberForces,
+    IomNode,
+    Rfem6GrpcRequest,
+    build_rfem6_grpc_payload,
+    export_iom_dict,
+    export_iom_xml,
+)
+
+__all__ += [
+    "IdeaOpenModelConnection",
+    "IomCrossSection",
+    "IomLoadCase",
+    "IomMember",
+    "IomMemberForces",
+    "IomNode",
+    "Rfem6GrpcRequest",
+    "build_rfem6_grpc_payload",
+    "export_iom_dict",
+    "export_iom_xml",
+]
+
+
