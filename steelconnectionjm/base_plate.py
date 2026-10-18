@@ -61,8 +61,13 @@ class BasePlate:
     # Case 1: Concentric compression only
     # ------------------------------------------------------------------
     def bearing_pressure(self) -> float:
-        """Maximum bearing pressure fp [MPa]."""
-        return self.Pu_N / self.A1
+        """Maximum bearing pressure fp [MPa].
+
+        Con traccion (Pu < 0) la placa no aprieta el hormigon: la presion de
+        contacto es 0, no negativa (B59: fp < 0 llevaba `sqrt` a un dominio
+        invalido en `required_thickness` y `design()` reventaba).
+        """
+        return max(self.Pu_N, 0.0) / self.A1
 
     def bearing_check(self) -> dict:
         """φcFp = 0.65 × 0.85 × f'c × √(A2/A1) (AISC §J8)."""
@@ -85,7 +90,23 @@ class BasePlate:
         Minimum plate thickness from bending (DG1 §3.3.4).
         tp,req = l · √(2 · fp / (0.9 · Fy))
         where l = max(m, n, lambda_n) cantilever dimensions.
+
+        Con traccion (Pu < 0) esta formula de compresion daria tp = 0, un
+        espesor FABRICADO: la placa flecta por la traccion de los anclajes, que
+        este modulo no calcula. Sale NO EVALUADO, no 0 ni un aprobado (B59).
         """
+        if self.Pu_N < 0:
+            return {
+                "check": "Plate thickness",
+                "tp_required_mm": None,
+                "utilization": None,
+                "is_ok": None,
+                "motivo_no_evaluado": (
+                    "Pu < 0 (levantamiento): la placa flecta por la traccion de "
+                    "los anclajes y esa comprobacion no esta implementada; la "
+                    "formula DG1 §3.3.4 es de compresion"
+                ),
+            }
         fp = self.bearing_pressure()
         m = (self.plate_N - 0.95 * self.column_d) / 2
         n = (self.plate_B - 0.80 * self.column_bf) / 2
@@ -163,8 +184,23 @@ class BasePlate:
             self.required_thickness(),
             self.anchor_tension(),
         ]
-        governing = max(checks, key=lambda c: c["utilization"])
-        all_ok = all(c["is_ok"] for c in checks)
+        # Un check NO EVALUADO (utilization/is_ok None) no entra en el maximo y
+        # no puede firmar: un FALLA manda; si no hay fallo pero falta un check,
+        # el informe no es un aprobado (None), igual que dc_summary (B45) (B59).
+        evaluados = [c for c in checks if c["utilization"] is not None]
+        governing = max(evaluados, key=lambda c: c["utilization"])
+        estados = [c["is_ok"] for c in checks]
+        if any(e is False for e in estados):
+            all_ok = False
+        elif any(e is None for e in estados):
+            all_ok = None
+        else:
+            all_ok = True
+        # Sin fallo pero con un check sin evaluar, la utilizacion gobernante NO
+        # se conoce (el que falta podia gobernar): no se publica la de los
+        # presentes, que un lector tomaria por la de la placa.
+        gov_check = governing["check"] if all_ok is not None else None
+        gov_util = governing["utilization"] if all_ok is not None else None
         return {
             "connection_type": "Column Base Plate",
             "code": "AISC DG1",
@@ -177,8 +213,9 @@ class BasePlate:
             "fc_MPa": self.fc_concrete,
             "Fp_max_MPa": round(self.Fp_max, 3),
             "checks": checks,
-            "governing_check": governing["check"],
-            "governing_utilization": governing["utilization"],
+            "governing_check": gov_check,
+            "governing_utilization": gov_util,
             "all_checks_ok": all_ok,
-            "summary": "✅ OK" if all_ok else "❌ FAILED",
+            "summary": ("✅ OK" if all_ok is True else
+                        "❌ FAILED" if all_ok is False else "NO EVALUADO"),
         }
