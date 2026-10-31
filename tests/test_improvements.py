@@ -12,9 +12,9 @@ import pytest
 
 sys.path.insert(0, str(Path(__file__).parent.parent))
 
-from steelconnectionjm import catalog
-from steelconnectionjm.end_plate import EndPlate
-from steelconnectionjm import dxf_detail
+from steeljoints import catalog
+from steeljoints.end_plate import EndPlate
+from steeljoints import dxf_detail
 
 
 # ---------------------------------------------------------------------------

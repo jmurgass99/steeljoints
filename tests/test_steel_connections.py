@@ -1,18 +1,18 @@
 """
-tests/test_steel_connections.py — Unit tests for SteelConnectionJm.
+tests/test_steel_connections.py — Unit tests for SteelJoints.
 """
 import pytest
 import sys
 from pathlib import Path
 sys.path.insert(0, str(Path(__file__).parent.parent))
 
-from steelconnectionjm.bolts import Bolt, BoltGroup, bolt_gross_area
-from steelconnectionjm.welds import FilletWeld
-from steelconnectionjm.block_shear import block_shear_strength
-from steelconnectionjm.shear_tab import ShearTab
-from steelconnectionjm.end_plate import EndPlate
-from steelconnectionjm.base_plate import BasePlate
-from steelconnectionjm.clip_angle import ClipAngle
+from steeljoints.bolts import Bolt, BoltGroup, bolt_gross_area
+from steeljoints.welds import FilletWeld
+from steeljoints.block_shear import block_shear_strength
+from steeljoints.shear_tab import ShearTab
+from steeljoints.end_plate import EndPlate
+from steeljoints.base_plate import BasePlate
+from steeljoints.clip_angle import ClipAngle
 
 
 # ---------------------------------------------------------------------------

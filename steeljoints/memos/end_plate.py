@@ -17,7 +17,7 @@ centro de compresion. La misma estructura tiene AISC Design Guide 4 (2.a ed.,
 Ec. 3.1).
 
 El T-stub NO se reimplementa aqui: se usa la funcion canonica del repo
-``steelconnectionjm.codes.ec3_1_8.t_stub_FT_Rd`` (goldens propios en
+``steeljoints.codes.ec3_1_8.t_stub_FT_Rd`` (goldens propios en
 tests/test_ec3_1_8_golden.py, clase TestTStubGolden).
 
 Mj,Rd DEVUELTA = COTA SUPERIOR — LIMITACION VIGENTE
@@ -79,7 +79,7 @@ from dataclasses import dataclass
 from math import pi
 from typing import Any
 
-from steelconnectionjm.codes.ec3_1_8 import t_stub_FT_Rd
+from steeljoints.codes.ec3_1_8 import t_stub_FT_Rd
 
 #: AISC 360-22 §J3.7 — traccion de tornillos.
 PHI_BOLT_TENSION = 0.75

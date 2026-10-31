@@ -1,6 +1,6 @@
 """
 tests/test_welds_absence_propagation.py — la ausencia se propaga como ausencia
-en ``steelconnectionjm.welds``.
+en ``steeljoints.welds``.
 
 Dos defectos de tipo "aprobado silencioso" en ``welds.py``:
 
@@ -26,9 +26,9 @@ import math
 
 import pytest
 
-from jmstructural_common.audit_status import CalculationStatus
-from steelconnectionjm.weld_group import WeldGroupElastic, WeldSegment
-from steelconnectionjm.welds import FilletWeld, WeldGroup
+from steeljoints._common.audit_status import CalculationStatus
+from steeljoints.weld_group import WeldGroupElastic, WeldSegment
+from steeljoints.welds import FilletWeld, WeldGroup
 
 
 def _group() -> WeldGroup:

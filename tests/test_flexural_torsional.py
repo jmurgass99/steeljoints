@@ -11,7 +11,7 @@ import math
 
 import pytest
 
-from steelconnectionjm.flexural_torsional import (
+from steeljoints.flexural_torsional import (
     BucklingInput,
     elastic_buckling_stress,
     flexural_torsional_closed_form,

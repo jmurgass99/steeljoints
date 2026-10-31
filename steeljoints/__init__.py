@@ -1,11 +1,11 @@
 """
-SteelConnectionJm — Steel Connection Design Library
+SteelJoints — Steel Connection Design Library
 =====================================================
 Multi-code design: AISC 360-22, EN 1993-1-8, NSR-10 F.2
 
 Usage
 -----
->>> from steelconnectionjm import BoltGroup, FilletWeld, ShearTab, BasePlate
+>>> from steeljoints import BoltGroup, FilletWeld, ShearTab, BasePlate
 >>> tab = ShearTab(Vu=120.0, bolt_diameter=19.05, n_bolts=3,
 ...                plate_thickness=9.5, plate_width=75.0)
 >>> result = tab.design()

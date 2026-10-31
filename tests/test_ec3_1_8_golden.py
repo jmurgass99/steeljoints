@@ -1,6 +1,6 @@
 """
 tests/test_ec3_1_8_golden.py — Golden tests for the canonical EC3-1-8 pure
-functions in ``steelconnectionjm.codes.ec3_1_8``.
+functions in ``steeljoints.codes.ec3_1_8``.
 
 Each test anchors a canonical function to the *published numbers* of a solved
 master exam problem (WorkID + EN 1993-1-8 clause cited in the docstring). The
@@ -31,7 +31,7 @@ source ficha.
 """
 import pytest
 
-from steelconnectionjm.codes.ec3_1_8 import (
+from steeljoints.codes.ec3_1_8 import (
     bolt_shear_Rd,
     bolt_bearing_Rd,
     bolt_tension_Rd,
@@ -368,7 +368,7 @@ class TestBlockTearingCrossCheck:
         that function's EN1993 path has a gamma_M0/gamma_M2 bug independent
         of any ficha errata.
         """
-        from steelconnectionjm.block_shear_multi import BlockShearInput, block_shear
+        from steeljoints.block_shear_multi import BlockShearInput, block_shear
 
         inp = BlockShearInput(
             Agv_mm2=1050.0, Anv_mm2=720.0, Ant_mm2=980.0,

@@ -1,7 +1,7 @@
 """Tests memo end-plate."""
 import pytest
 
-from steelconnectionjm.memos.end_plate import (
+from steeljoints.memos.end_plate import (
     BoltRow, EndPlateInput, render_end_plate_memo,
 )
 
@@ -243,8 +243,8 @@ def test_golden_reutiliza_t_stub_canonico_del_repo():
     entradas de fila que el memo usa internamente y exigiendo identidad
     numerica de la fuerza de fila de diseno.
     """
-    from steelconnectionjm.codes.ec3_1_8 import t_stub_FT_Rd
-    from steelconnectionjm.memos.end_plate import (
+    from steeljoints.codes.ec3_1_8 import t_stub_FT_Rd
+    from steeljoints.memos.end_plate import (
         PHI_BOLT_TENSION, PHI_PLATE_BENDING,
     )
     from math import pi

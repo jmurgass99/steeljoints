@@ -1,7 +1,7 @@
 """Tests memo panel zone (AISC 360-22 §J10.6)."""
 import pytest
 
-from steelconnectionjm.memos.panel_zone import (
+from steeljoints.memos.panel_zone import (
     PanelZoneInput, render_panel_zone_memo,
 )
 

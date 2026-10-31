@@ -16,7 +16,7 @@ from __future__ import annotations
 from typing import Any
 import logging
 
-log = logging.getLogger("steelconnectionjm.dxf_detail")
+log = logging.getLogger("steeljoints.dxf_detail")
 
 try:
     import ezdxf
@@ -29,7 +29,7 @@ except ImportError:
 # --- Mejora C: integration opcional con DXFStructuralJm ---
 _USE_DXFSTRUCTURAL = False
 try:
-    import dxfstructuraljm as _dxfstr  # noqa: F401
+    import rebardxf as _dxfstr  # noqa: F401
     _USE_DXFSTRUCTURAL = True
     log.info("DXFStructuralJm detectado - primitivas avanzadas disponibles")
 except ImportError:

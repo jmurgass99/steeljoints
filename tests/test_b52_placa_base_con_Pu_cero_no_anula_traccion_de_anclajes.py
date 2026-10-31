@@ -14,7 +14,7 @@ from __future__ import annotations
 
 import pytest
 
-from steelconnectionjm.base_plate import BasePlate
+from steeljoints.base_plate import BasePlate
 
 
 def test_placa_base_con_Pu_cero_y_momento_conserva_la_traccion_limite() -> None:

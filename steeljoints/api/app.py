@@ -7,7 +7,7 @@ try:
     from pydantic import BaseModel, Field
 except ImportError as exc:
     raise ImportError(
-        "fastapi requerido: pip install steelconnectionjm[api]"
+        "fastapi requerido: pip install steeljoints[api]"
     ) from exc
 
 from .._brand import NAME as _BRAND_NAME

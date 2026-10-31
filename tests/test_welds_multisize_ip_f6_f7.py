@@ -1,11 +1,11 @@
-"""Tests para F.6 y F.7 en SteelConnectionJm welds.py.
+"""Tests para F.6 y F.7 en SteelJoints welds.py.
 
 F.6: polar_moment calcula el Ip real de cada cordón con su longitud y garganta propias.
 F.7: min_size documenta e indexa por la parte más delgada según AISC 360-22 Tabla J2.4.
 """
 import math
 import pytest
-from steelconnectionjm.welds import FilletWeld, WeldGroup
+from steeljoints.welds import FilletWeld, WeldGroup
 
 
 def test_polar_moment_different_weld_lengths():

@@ -1,7 +1,7 @@
 """Estado estructurado de una demanda de momento: MISSING / ZERO / INVALID / POSITIVE.
 
 Existe porque los servicios de conexiones precalificadas (RBS, WUF-W) y el bridge
-con dynamicsjm hacian los tres la misma comparacion:
+con seismodyn hacian los tres la misma comparacion:
 
     if Mu > 0: DCR = Mu / M_cap
     else:      DCR = 0.0          # ausente, cero, negativo y NaN, todos iguales
@@ -24,7 +24,7 @@ from __future__ import annotations
 import math
 from dataclasses import dataclass
 
-from jmstructural_common.audit_status import CalculationStatus
+from steeljoints._common.audit_status import CalculationStatus
 
 MISSING = "MISSING"
 ZERO = "ZERO"
@@ -64,7 +64,7 @@ def clasificar_momento(valor: float | None, *, nombre: str) -> DemandaMomento:
     * NaN / +-inf -> INVALID.
     * ``0.0`` -> ZERO. Una conexion a momento sin momento no es un estado
       verificable, y es indistinguible del antiguo default. Mismo criterio que
-      `steelconnectionjm.welds` (`demand_present = Vu != 0 or Mu != 0`).
+      `steeljoints.welds` (`demand_present = Vu != 0 or Mu != 0`).
     * cualquier otro finito -> POSITIVE con su magnitud.
     """
     if valor is None:

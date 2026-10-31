@@ -1,6 +1,6 @@
 """Tests for haunch connection."""
 import pytest
-from steelconnectionjm.haunch_connection import HaunchInput, design_haunch
+from steeljoints.haunch_connection import HaunchInput, design_haunch
 
 
 def _typical_w16():

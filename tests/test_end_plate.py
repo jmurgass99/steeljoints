@@ -1,15 +1,15 @@
 """
 tests/test_end_plate.py — New tests covering the catalog + AISC 358 refactor
-of `steelconnectionjm.end_plate.EndPlate`.
+of `steeljoints.end_plate.EndPlate`.
 """
 import pytest
 import sys
 from pathlib import Path
 sys.path.insert(0, str(Path(__file__).parent.parent))
 
-from steelconnectionjm.end_plate import EndPlate
-from steelconnectionjm import catalog
-from steelconnectionjm.codes import aisc358
+from steeljoints.end_plate import EndPlate
+from steeljoints import catalog
+from steeljoints.codes import aisc358
 
 
 # ---------------------------------------------------------------------------

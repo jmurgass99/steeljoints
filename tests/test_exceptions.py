@@ -2,7 +2,7 @@
 from __future__ import annotations
 import pytest
 
-from steelconnectionjm.exceptions import (
+from steeljoints.exceptions import (
     ConnectionError, GeometryError, CodeError, DesignError,
     ConvergenceError, DependencyError, ConfigurationError,
 )
@@ -47,6 +47,6 @@ def test_dependency_error_also_import_error():
 
 
 def test_reexport_from_package():
-    import steelconnectionjm as scj
+    import steeljoints as scj
     assert scj.GeometryError is GeometryError
     assert scj.ConvergenceError is ConvergenceError

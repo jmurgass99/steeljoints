@@ -1,4 +1,4 @@
-"""IDEA StatiCa Open Model (IOM) & Dlubal RFEM 6 gRPC Bridge — SteelConnectionJm.
+"""IDEA StatiCa Open Model (IOM) & Dlubal RFEM 6 gRPC Bridge — SteelJoints.
 
 Implements structural connection interoperability:
   1. **IDEA Open Model (IOM v2025/2026)**:

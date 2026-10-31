@@ -1,12 +1,12 @@
-"""Bridge steelconnectionjm -> dynamicsjm: verifica conexiones contra demanda dinamica.
+"""Bridge steeljoints -> seismodyn: verifica conexiones contra demanda dinamica.
 
 Recibe lista de demandas (M_Ed, V_Ed) por viga (tipicamente del envelope
 de un pushover N2 o IDA), itera sobre las conexiones RBS definidas y verifica
 que la capacidad probable de la rotula plastica cumpla con la demanda
 amplificada por capacity design.
 
-Cliente dynamicsjm duck-typed: la demanda llega como dataclass simple,
-no se importa dynamicsjm directamente.
+Cliente seismodyn duck-typed: la demanda llega como dataclass simple,
+no se importa seismodyn directamente.
 
 Contrato de la demanda (AC-03): `M_Ed_kNm` se clasifica junto al calculo como
 MISSING / ZERO / INVALID / POSITIVE (ver `services._demanda`). Antes
@@ -22,12 +22,12 @@ import logging
 import math
 from dataclasses import dataclass, field
 
-from jmstructural_common.audit_status import CalculationStatus, resolve_status
+from steeljoints._common.audit_status import CalculationStatus, resolve_status
 
 from ..memos.rbs_aisc358 import rbs_aisc358_memo, RBSDesignResult
 from ..services._demanda import clasificar_momento, nota_de_signo
 
-log = logging.getLogger("steelconnectionjm.dynamicsjm_bridge")
+log = logging.getLogger("steeljoints.seismodyn_bridge")
 
 
 @dataclass(frozen=True)

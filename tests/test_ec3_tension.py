@@ -1,10 +1,10 @@
-"""Tests for steelconnectionjm.ec3_tension_members (EN 1993-1-11)."""
+"""Tests for steeljoints.ec3_tension_members (EN 1993-1-11)."""
 
 from math import pi
 
 import pytest
 
-from steelconnectionjm.ec3_tension_members import (
+from steeljoints.ec3_tension_members import (
     bending_stress_at_anchorage,
     fatigue_class_strand,
     partial_factor_gM,

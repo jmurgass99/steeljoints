@@ -24,7 +24,7 @@ from math import sqrt, sin, cos, radians, degrees, atan2, exp, pi
 
 from .exceptions import ConvergenceError
 
-log = logging.getLogger("steelconnectionjm.weld_group")
+log = logging.getLogger("steeljoints.weld_group")
 
 
 # ---------------------------------------------------------------------------

@@ -27,7 +27,7 @@ class PanelZoneServiceResult:
 
 def design_panel_zone(inp: PanelZoneServiceInput) -> PanelZoneServiceResult:
     """Wrap del modulo panel_zone existente."""
-    from steelconnectionjm.panel_zone import (
+    from steeljoints.panel_zone import (
         PanelZoneInput, shear_capacity,
     )
     pz_inp = PanelZoneInput(

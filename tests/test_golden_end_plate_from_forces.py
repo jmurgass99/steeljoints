@@ -7,7 +7,7 @@ y devolver la comprobación completa de la unión según AISC 360/358.
 from __future__ import annotations
 
 import pytest
-from steelconnectionjm.end_plate import design_end_plate_from_member_forces
+from steeljoints.end_plate import design_end_plate_from_member_forces
 
 
 def test_golden_end_plate_design_from_applied_forces():

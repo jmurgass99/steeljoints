@@ -3,7 +3,7 @@ from __future__ import annotations
 from types import SimpleNamespace
 import pytest
 
-from steelconnectionjm.integration.fastsap_bridge import (
+from steeljoints.integration.fastsap_bridge import (
     ConnectionForces, extract_beam_column_forces, design_panel_zone_from_sap,
 )
 

@@ -3,13 +3,13 @@ from __future__ import annotations
 import math
 import pytest
 
-from steelconnectionjm.codes.nsr10_f2 import (
+from steeljoints.codes.nsr10_f2 import (
     design_bolt_nsr10, NSR10BoltInput,
     design_fillet_weld_nsr10, NSR10FilletWeldInput,
     design_block_shear_nsr10, NSR10BlockShearInput,
     PHI_BOLT_SHEAR, PHI_WELD, BOLT_GRADES_NSR10, info,
 )
-from steelconnectionjm.exceptions import CodeError, ConfigurationError
+from steeljoints.exceptions import CodeError, ConfigurationError
 
 
 def test_info_returns_string():

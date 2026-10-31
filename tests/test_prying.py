@@ -2,7 +2,7 @@
 """Accion de palanca (prying) — AISC Manual Part 9."""
 import pytest
 
-from steelconnectionjm.prying import PryingInput, prying_capacity
+from steeljoints.prying import PryingInput, prying_capacity
 
 
 def _case(t_mm):

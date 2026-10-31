@@ -8,7 +8,7 @@ from __future__ import annotations
 
 import json
 import pytest
-from steelconnectionjm.integration.idea_statica_export import (
+from steeljoints.integration.idea_statica_export import (
     IdeaStaticaForceRow,
     export_idea_statica_csv,
     export_idea_statica_json,

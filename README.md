@@ -1,135 +1,56 @@
-# SteelConnectionJm — Diseño de Conexiones de Acero Multi-Código
+# steeljoints
 
-[![CI](https://github.com/jmurgass99/steelconnectionjm/actions/workflows/ci.yml/badge.svg)](https://github.com/jmurgass99/steelconnectionjm/actions/workflows/ci.yml)
-[![Coverage](https://img.shields.io/badge/coverage-62.11%25-yellow?style=flat)](https://github.com/jmurgass99/steelconnectionjm)
+Diseño de uniones de acero multinorma: pernos y grupos de pernos (método del centro instantáneo de rotación), soldaduras en ángulo y a tope, grupos de soldadura (elástico e ICR), chapas de testa (end plate) con efecto palanca, chapas de cortante (shear tab), angulares, empalmes, placas base y anclajes (ACI 318-25 cap. 17), zona de panel, rotura por bloque de cortante, conexiones RBS y WUF-W (AISC 358), rotura frágil y miembros a tracción EC3, y exportación IOM a IDEA StatiCa. Normas: AISC 360-22, AISC 358, EN 1993-1-8, NSR-10 F.2.
+
+[![CI](https://github.com/jmurgass99/steeljoints/actions/workflows/ci.yml/badge.svg)](https://github.com/jmurgass99/steeljoints/actions/workflows/ci.yml)
 [![Python](https://img.shields.io/badge/python-3.11%2B-blue)](https://www.python.org/)
-[![License](https://img.shields.io/badge/license-Proprietary-red)]()
+[![License: MIT](https://img.shields.io/badge/license-MIT-green)](LICENSE)
 
-## Objetivo
-Librería Python para el diseño y verificación de conexiones de acero estructural según **AISC 360-22 (Chapter J)**, **EN 1993-1-8:2005 (Eurocódigo 3)** y **NSR-10 (Título F.2)**. Cubre conexiones atornilladas, soldadas, placas de base y conexiones viga-columna momento-resistentes.
+Paquete independiente. Única dependencia obligatoria: `numpy`.
 
-Este proyecto **completa el ciclo de diseño en acero** de FastSAP, que actualmente tiene `design_aisc_adapter.py` para chequeo de miembros pero NO diseña las uniones entre ellos.
+## Instalación
 
----
-
-## ¿Qué va a hacer?
-
-### 1. Conexiones Atornilladas
-- Resistencia por perno: cortante (shear), aplastamiento (bearing), tracción (tension), interacción cortante-tracción
-- Conexiones tipo fricción (slip-critical) y tipo aplastamiento (bearing-type)
-- Pernos de alta resistencia: A325/A490 (AISC) o 8.8/10.9 (EC3)
-- Grupos de pernos: método de centro instantáneo de rotación (ICR)
-
-### 2. Conexiones Soldadas
-- Soldadura de filete: resistencia direccional (longitudinal, transversal, oblicua)
-- Soldadura de penetración completa (CJP) y parcial (PJP)
-- Grupos de soldadura: método elástico y método de rotura
-
-### 3. Shear Connections (Simple)
-- Shear tab (single plate)
-- Clip angle (double angle)
-- Verificación de bloque de cortante (block shear)
-- Diseño de placa gusset
-
-### 4. Moment Connections
-- Extended end-plate (4 y 8 pernos)
-- Flush end-plate
-- Verificaciones de panel zone
-- Pre-calificadas AISC 358 para conexiones sísmicas
-
-### 5. Placas de Base (Base Plates)
-- Diseño por flexión bajo carga axial (concéntrica y excéntrica)
-- Diseño de pernos de anclaje (tension + shear)
-- Presión sobre concreto (bearing on concrete): A1/A2 ratio
-- Placa de corte (shear lug) para cortante elevado
-
-### 6. Exportación
-- Plano de detalle de la conexión en DXF (usando `ezdxf`)
-- Tabla de pernos/soldaduras para memoria de cálculo
-
----
-
-## Estructura de Módulos Planificada
-
-```
-steelconnectionjm/
-├── __init__.py
-├── bolts.py                # Resistencia por bolt: Rn shear, bearing, tension, slip
-├── bolt_group.py           # ICR method, grupo de pernos excéntrico
-├── welds.py                # Filete (Rn directional), CJP, PJP
-├── weld_group.py           # Grupo de soldaduras: elástico y rotura
-├── block_shear.py          # Verificación de block shear (Ubs, Ant, Anv)
-├── shear_tab.py            # Single-plate shear connection design
-├── clip_angle.py           # Double-angle shear connection
-├── end_plate.py            # Extended/flush end plate moment connections
-├── base_plate.py           # Base plate + anchor bolts + shear lug
-├── panel_zone.py           # Panel zone shear (doubler plates)
-├── codes/
-│   ├── __init__.py
-│   ├── aisc360_j.py        # AISC 360-22 Chapter J (bolts, welds, affected elements)
-│   ├── aisc358.py          # AISC 358 pre-qualified seismic connections
-│   ├── ec3_1_8.py          # EN 1993-1-8:2005 (categories A-E, T-stubs, component method)
-│   └── nsr10_f2.py         # NSR-10 Título F.2
-├── dxf_detail.py           # Genera plano de detalle con ezdxf
-├── catalog.py              # Catálogo de pernos A325/A490/8.8/10.9, electrodos E70XX
-└── tests/
-    ├── test_bolts.py
-    ├── test_welds.py
-    ├── test_shear_tab.py
-    ├── test_end_plate.py
-    └── test_base_plate.py
+```bash
+pip install git+https://github.com/jmurgass99/steeljoints.git
 ```
 
+Extras: `api` (REST), `dxf` (detalles con ezdxf), `numeric` (scipy), `memos` (memorias con handcalcs), `test`.
+
+## Inicio rápido
+
+```python
+from steeljoints import Bolt, BoltGroup, FilletWeld, ShearTab, EndPlate, BasePlate, PanelZone
+from steeljoints.block_shear_multi import BlockShearInput, block_shear
+
+help(ShearTab)      # cada clase documenta sus parámetros y la norma aplicada
+```
+
+El script `examples/example_aisc_manual_part10.py` resuelve una conexión de cortante del Manual AISC (Parte 10) paso a paso y es el mejor punto de partida: pernos, chapa, soldadura y bloque de cortante con sus comprobaciones.
+
+## Módulos
+
+| Módulo | Contenido |
+|---|---|
+| `bolts`, `bolt_group`, `prying` | Pernos, grupos ICR, efecto palanca |
+| `welds`, `groove_welds`, `weld_group` | Soldaduras y grupos |
+| `shear_tab`, `clip_angle`, `end_plate`, `splice_design`, `haunch_connection` | Uniones viga-pilar y empalmes |
+| `base_plate`, `aci318_25_anchors` | Placas base y anclajes |
+| `panel_zone`, `wuf_w`, `services/rbs` | Zona de panel, WUF-W y RBS (AISC 358) |
+| `block_shear`, `block_shear_multi`, `flexural_torsional` | Bloque de cortante multinorma, pandeo flexo-torsional |
+| `codes/` (`ec3_1_8`, `nsr`, `aisc`) y `ec3_fracture`, `ec3_tension_members` | Cláusulas por norma |
+| `catalog` | Catálogo de pernos y perfiles |
+| `steelnode`, `steelnode_schemas`, `ideastatica_iom` | Modelo de nudo y exportación IOM a IDEA StatiCa |
+| `dxf_detail`, `memos/`, `services/`, `api/` | Detalles DXF (extra `dxf`), memorias, servicios y REST |
+| `integration/` | Puentes a seismodyn y fastsap (opcionales; sus tests se omiten si faltan) |
+
+## Validación
+
+Tests golden contra EN 1993-1-8 (T-stub, chapas de testa a partir de esfuerzos), interacción J3.7 de AISC, exportación IOM, NSR-10 F.2, y tests de propiedades con hypothesis. Los contratos de "ausencia no es cero" garantizan que una soldadura o un momento no informado no se aprueba en silencio.
+
+## Licencia
+
+MIT. Consulta [LICENSE](LICENSE).
+
 ---
 
-## Fuentes de Información
-
-### Normas y Códigos
-| Código | Secciones | Contenido |
-|--------|-----------|-----------|
-| **AISC 360-22** | Chapter J (J1-J10) | Diseño de conexiones: pernos, soldaduras, elementos afectados |
-| **AISC 358-22** | Sections 6-8 | Conexiones precalificadas para sismo (end plates, RBS, BFP) |
-| **AISC Design Guide 1** | Completo | Base plates and anchor rod design |
-| **AISC Steel Construction Manual** | Tables 7, 8, 10 | Capacidades tabuladas de pernos y soldaduras |
-| **EN 1993-1-8:2005** | §3 (bolts), §4 (welds), §6 (joints) | Método de componentes EC3 |
-| **NSR-10 Título F.2** | §F.2.10 (conexiones) | Norma colombiana de conexiones |
-
-### Repositorios de Referencia (ya descargados)
-- `steel-as-main` — Diseño de miembros de acero (complemento directo)
-- `steel_beam_designer-main` — Diseño de vigas de acero
-- `SteelColumn-master` — Verificación de columnas de acero
-- `Structural-Engineering-master` — Ejemplos generales de conexiones
-
-### Integración con FastSAP
-- `fastsap/design_aisc_adapter.py` — Adaptador AISC existente (chequeo de miembros)
-- `fastsap/section_catalog.py` — Catálogo de perfiles W, HSS, L, C
-- `fastsap/extractor.py` — Extrae fuerzas en extremos de miembros para diseño de conexiones
-- `fastsap/codes/ec3_buckling.py` — Módulo EC3 existente
-
----
-
-## Criterio de Éxito
-- [ ] Diseñar una shear tab connection completa (pernos + placa + block shear)
-- [ ] Diseñar una extended end-plate moment connection (8-bolt stiffened)
-- [ ] Diseñar una base plate bajo carga axial + momento
-- [ ] Validar contra AISC Design Examples (Manual Part 10)
-- [ ] Generar plano DXF de la conexión con cotas y tabla de materiales
-- [ ] Suite de tests con ≥30 casos
-
-## Ecosystem
-
-This project is part of the **jmurgass99 structural engineering ecosystem**:
-
-- [fastsap](https://github.com/jmurgass99/fastsap) - orquestador SAP2000/ETABS
-- [dynamicsjmpro](https://github.com/jmurgass99/dynamicsjmpro) - SaaS frontend + backend
-- [dynamicsjm](https://github.com/jmurgass99/dynamicsjm) - motor dinamico
-- [foundationdesignjm](https://github.com/jmurgass99/foundationdesignjm) - cimentaciones
-- [windloadjm](https://github.com/jmurgass99/windloadjm) - cargas de viento
-- [seismicrecordsjm](https://github.com/jmurgass99/seismicrecordsjm) - records sismicos
-- [slopestabilityjm](https://github.com/jmurgass99/slopestabilityjm) - estabilidad de taludes
-- [steelconnectionjm](https://github.com/jmurgass99/steelconnectionjm) - conexiones de acero
-- [steeloptimizerjm](https://github.com/jmurgass99/steeloptimizerjm) - optimizacion GA
-- [coldformedjm](https://github.com/jmurgass99/coldformedjm) - acero conformado en frio
-- [fatiguejm](https://github.com/jmurgass99/fatiguejm) - analisis de fatiga
-- [firesteeljm](https://github.com/jmurgass99/firesteeljm) - analisis termico al fuego
-- [dxfstructuraljm](https://github.com/jmurgass99/dxfstructuraljm) - generacion DXF
+Parte del toolkit estructural de código abierto **Loadpath**, de [Jesús Murgas](https://github.com/jmurgass99).

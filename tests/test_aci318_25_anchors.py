@@ -4,7 +4,7 @@ from __future__ import annotations
 import math
 import pytest
 
-from steelconnectionjm.aci318_25_anchors import (
+from steeljoints.aci318_25_anchors import (
     Aci318Anchor2025Input,
     Aci318DeepShear2025Input,
     compute_size_effect_lambda_s,

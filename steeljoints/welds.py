@@ -10,7 +10,7 @@ import numpy as np
 from dataclasses import dataclass
 from math import sqrt, sin, cos, pi, radians
 
-from jmstructural_common.audit_status import CalculationStatus, resolve_status
+from steeljoints._common.audit_status import CalculationStatus, resolve_status
 
 
 # Electrode strengths [MPa]

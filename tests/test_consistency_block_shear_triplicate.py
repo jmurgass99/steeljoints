@@ -3,7 +3,7 @@ test_consistency_block_shear_triplicate.py
 ===========================================
 Campaña AG38 — Bloque A: Consistencia cruzada entre las tres implementaciones
 de desgarro en bloque (block shear) del monorepo:
-  1. steelconnectionjm.block_shear (canónica, multi-código)
+  1. steeljoints.block_shear (canónica, multi-código)
   2. fastsap.codes.block_shear.block_shear (punto 28, delegada en AG38)
   3. asistentejm.tools.block_shear (tool de asistente, delegada en AG38)
 
@@ -12,9 +12,11 @@ Citas normativas:
   - EN 1993-1-8:2005 §3.10.2(2) "Block tearing", Ec. (3.9).
 """
 from __future__ import annotations
+import pytest as _pytest_skip
+_pytest_skip.importorskip("fastsap")  # dependencia externa opcional: sin ella estos tests se omiten
 
 import pytest
-from steelconnectionjm import (
+from steeljoints import (
     BlockShearInput,
     block_shear as canonical_block_shear,
 )

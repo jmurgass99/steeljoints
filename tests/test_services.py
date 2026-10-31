@@ -2,17 +2,17 @@
 from __future__ import annotations
 import pytest
 
-from steelconnectionjm.services.bolts import (
+from steeljoints.services.bolts import (
     SingleBoltInput, BoltGroupInput, design_single_bolt, design_bolt_group,
 )
-from steelconnectionjm.services.welds import FilletWeldInput, design_fillet_weld
-from steelconnectionjm.services.end_plate import EndPlateInput, design_end_plate
-from steelconnectionjm.services.base_plate import BasePlateInput, design_base_plate
-from steelconnectionjm.services.panel_zone import (
+from steeljoints.services.welds import FilletWeldInput, design_fillet_weld
+from steeljoints.services.end_plate import EndPlateInput, design_end_plate
+from steeljoints.services.base_plate import BasePlateInput, design_base_plate
+from steeljoints.services.panel_zone import (
     PanelZoneServiceInput, design_panel_zone,
 )
-from steelconnectionjm.services.splice import SpliceInput, design_splice
-from steelconnectionjm.services.clip_angle import ClipAngleInput, design_clip_angle
+from steeljoints.services.splice import SpliceInput, design_splice
+from steeljoints.services.clip_angle import ClipAngleInput, design_clip_angle
 
 
 def test_single_bolt_a325():

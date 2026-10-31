@@ -1,8 +1,8 @@
-"""Tests del bridge steelconnectionjm -> dynamicsjm."""
+"""Tests del bridge steeljoints -> seismodyn."""
 from __future__ import annotations
 import pytest
 
-from steelconnectionjm.integration import (
+from steeljoints.integration import (
     BeamDynamicDemand, RBSConnectionDefinition,
     verify_connections_vs_demand,
 )

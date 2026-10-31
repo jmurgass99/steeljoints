@@ -2,7 +2,7 @@
 from __future__ import annotations
 from dataclasses import dataclass, field
 
-from jmstructural_common.audit_status import CalculationStatus, resolve_status
+from steeljoints._common.audit_status import CalculationStatus, resolve_status
 
 from ._demanda import clasificar_momento, estado_heredado, nota_de_signo
 

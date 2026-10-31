@@ -1,56 +1,49 @@
 [build-system]
-requires = ["setuptools>=68", "wheel"]
+requires = ["setuptools>=68"]
 build-backend = "setuptools.build_meta"
 
 [project]
-name = "steelconnectionjm"
-version = "0.1.0"
-description = "Steel connection design (AISC 360-22 + AISC 358 + EC3-1-8 + NSR-10 F.2)"
+name = "steeljoints"
+version = "1.0.0"
+description = "Steel joint design: bolts and bolt groups, fillet and groove welds, end plates, shear tabs, clip angles, splices, base plates and anchors, panel zones, prying, block shear, RBS and WUF-W (AISC 360-22, AISC 358, EN 1993-1-8, NSR-10 F.2, ACI 318-25 ch. 17)."
+readme = "README.md"
 requires-python = ">=3.11"
-dependencies = ["numpy>=1.24", "jmstructural-common"]
+license = { text = "MIT" }
+authors = [{ name = "Jesús Murgas" }]
+keywords = ["steel-connections", "joints", "aisc-360", "aisc-358", "en-1993-1-8", "bolts", "welds", "base-plate", "structural-engineering"]
+classifiers = [
+    "Development Status :: 4 - Beta",
+    "Intended Audience :: Science/Research",
+    "License :: OSI Approved :: MIT License",
+    "Programming Language :: Python :: 3",
+    "Programming Language :: Python :: 3.11",
+    "Programming Language :: Python :: 3.12",
+    "Programming Language :: Python :: 3.13",
+    "Topic :: Scientific/Engineering",
+]
+dependencies = ["numpy>=1.24"]
 
 [project.optional-dependencies]
 api = ["fastapi>=0.100", "uvicorn[standard]>=0.20", "httpx>=0.25", "pydantic>=2.0"]
-dxf = ["ezdxf>=1.0", "dxfstructuraljm"]
-test = ["pytest>=7.0", "pytest-cov>=4.0", "coverage>=7.0", "hypothesis>=6.0"]
+dxf = ["ezdxf>=1.0"]
+numeric = ["scipy>=1.10"]
+test = ["pytest>=7.0", "pytest-cov>=4.0", "coverage>=7.0", "hypothesis>=6.0", "pytest-timeout>=2.1"]
 memos = ["handcalcs>=1.6", "forallpeople>=2.6"]
 
+[project.urls]
+Homepage = "https://github.com/jmurgass99/steeljoints"
+Repository = "https://github.com/jmurgass99/steeljoints"
+Issues = "https://github.com/jmurgass99/steeljoints/issues"
+
 [tool.setuptools.packages.find]
-where = ["."]
-include = ["steelconnectionjm*"]
+include = ["steeljoints*"]
 
 [tool.pytest.ini_options]
 testpaths = ["tests"]
 markers = [
-    "unit: tests rapidos sin deps externas",
-    "integration: requieren stack completo",
-    "slow: duracion > 5s",
+    "slow: tests lentos",
+    "integration: integración entre módulos",
+    "api: endpoints REST",
     "property: property-based con hypothesis",
-    "fastsap: requieren puente FastSAP",
-    "dxf: requieren DXFStructuralJm o ezdxf",
-    "characterization: captura el estado ACTUAL de la implementacion (valor obtenido ejecutando el codigo, NO de una fuente normativa)",
+    "safety_critical: validados contra valores publicados",
 ]
-addopts = "--strict-markers"
-
-[tool.coverage.run]
-source = ["steelconnectionjm"]
-omit = [
-    "steelconnectionjm/_brand.py",
-    "tests/*",
-    "examples/*",
-]
-
-[tool.coverage.report]
-exclude_lines = [
-    "pragma: no cover",
-    "raise NotImplementedError",
-    "if __name__ == .__main__.:",
-    "if TYPE_CHECKING:",
-]
-fail_under = 80
-show_missing = true
-
-[tool.uv.sources]
-jmstructural-common = { workspace = true }
-dxfstructuraljm = { workspace = true }
-

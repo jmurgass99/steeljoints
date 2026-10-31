@@ -5,8 +5,8 @@ Normas: AISC 360-16 / AISC 358-16 (Prequalified Moment Connections).
 import pytest
 from fastapi.testclient import TestClient
 
-from steelconnectionjm.api.app import app
-from steelconnectionjm.end_plate import design_end_plate_from_member_forces
+from steeljoints.api.app import app
+from steeljoints.end_plate import design_end_plate_from_member_forces
 
 
 @pytest.fixture

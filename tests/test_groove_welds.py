@@ -2,7 +2,7 @@
 """Soldaduras de ranura CJP/PJP (AISC §J2)."""
 import pytest
 
-from steelconnectionjm.groove_welds import (
+from steeljoints.groove_welds import (
     cjp_strength,
     pjp_effective_throat,
     pjp_strength,

@@ -18,7 +18,7 @@ caminos productivos que llegan a este numero:
                       Mu = -inf   -> DCR 0.0   OK
                       Mu = 2000   -> DCR 1.857 NG
     POST /rbs         sin Mu      -> 200 OK ;  Mu=-2000 -> 200 OK ;  "NaN" -> 200 OK
-    bridge dynamicsjm M_Ed=-2000  -> util -2.15  is_safe=True  n_safe=1
+    bridge seismodyn M_Ed=-2000  -> util -2.15  is_safe=True  n_safe=1
                       M_Ed=0      -> util  0.0   is_safe=True
                       M_Ed=NaN    -> util  nan   is_safe=False n_unsafe=1   (falso FALLA)
 
@@ -56,13 +56,13 @@ import math
 
 import pytest
 
-from jmstructural_common.audit_status import CalculationStatus
-from steelconnectionjm.integration.dynamicsjm_bridge import (
+from steeljoints._common.audit_status import CalculationStatus
+from steeljoints.integration.seismodyn_bridge import (
     BeamDynamicDemand,
     RBSConnectionDefinition,
     verify_connections_vs_demand,
 )
-from steelconnectionjm.services import rbs
+from steeljoints.services import rbs
 
 CUMPLE = CalculationStatus.CALCULADO_CUMPLE
 FALLA = CalculationStatus.CALCULADO_FALLA
@@ -239,7 +239,7 @@ def client():
     pytest.importorskip("fastapi")
     pytest.importorskip("httpx")
     from fastapi.testclient import TestClient
-    from steelconnectionjm.api.app import app
+    from steeljoints.api.app import app
     return TestClient(app)
 
 
@@ -289,7 +289,7 @@ def test_http_momento_valido_firma_y_conserva_los_campos(client) -> None:
 
 
 # --------------------------------------------------------------------------- #
-# EL CASO: bridge dynamicsjm (JmWorkbench lo invoca como paso `funcion`)
+# EL CASO: bridge seismodyn (JmWorkbench lo invoca como paso `funcion`)
 # --------------------------------------------------------------------------- #
 def test_bridge_momento_negativo_grande_no_es_safe() -> None:
     """util = M_Ed / M_pr = -2.15 <= 1.0 era True: firmaba por el signo."""

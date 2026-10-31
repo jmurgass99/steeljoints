@@ -8,7 +8,7 @@ para todos sus módulos de cálculo.
 ## Estructura objetivo de un módulo
 
 ```
-steelconnectionjm/services/<topic>.py    # Funciones puras tipadas
+steeljoints/services/<topic>.py    # Funciones puras tipadas
   ├── @dataclass(frozen=True) <Topic>Input         # entradas con type hints
   ├── @dataclass(frozen=True) <Topic>Result        # salidas serializables
   └── def design_<topic>(inp: <Topic>Input) -> <Topic>Result:
@@ -48,7 +48,7 @@ tests/test_<topic>.py
 ## Ejemplo mínimo
 
 ```python
-# steelconnectionjm/services/example.py
+# steeljoints/services/example.py
 from dataclasses import dataclass
 from ..exceptions import GeometryError
 
@@ -79,7 +79,7 @@ def design_beam_simple(inp: BeamInput, Mu_kNm: float) -> BeamResult:
 
 ```python
 # tests/test_example.py
-from steelconnectionjm.services.example import BeamInput, design_beam_simple
+from steeljoints.services.example import BeamInput, design_beam_simple
 
 def test_designed_capacity_positive():
     res = design_beam_simple(BeamInput(L_mm=4000, b_mm=300, h_mm=500), Mu_kNm=50)
@@ -90,6 +90,6 @@ def test_designed_capacity_positive():
 
 - type hints estrictos (`from __future__ import annotations`)
 - docstrings PEP-257 castellano con `Args/Returns/Raises`
-- `logging.getLogger("steelconnectionjm.<module>")`, jamás `print`
+- `logging.getLogger("steeljoints.<module>")`, jamás `print`
 - pytest markers: `unit`, `integration`, `slow`, `safety_critical`, `property`
 - Coverage gate definido en `pyproject.toml`

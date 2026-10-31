@@ -42,8 +42,8 @@ from __future__ import annotations
 import math
 import pytest
 
-from steelconnectionjm.bolts import Bolt
-from steelconnectionjm.end_plate import EndPlate
+from steeljoints.bolts import Bolt
+from steeljoints.end_plate import EndPlate
 
 
 def test_golden_aisc_j3_7_bolt_combined_tension_shear_exact():

@@ -7,7 +7,7 @@ example_aisc_manual_part10.py — Ejemplos basados en AISC Manual Part 10.
 4. ClipAngle — doble ángulo a cortante
 5. PanelZone — verificación con doubler plate
 """
-from steelconnectionjm import (
+from steeljoints import (
     ShearTab, ClipAngle, PanelZone,
     BoltGroupICR, WeldSegment, WeldGroupElastic, WeldGroupICR,
     rectangular_pattern, catalog,
@@ -16,7 +16,7 @@ from steelconnectionjm import (
 
 def main() -> None:
     print("=" * 70)
-    print("Ejemplos SteelConnectionJm — AISC Manual Part 10")
+    print("Ejemplos SteelJoints — AISC Manual Part 10")
     print("=" * 70)
 
     # --------------------------------------------------------------

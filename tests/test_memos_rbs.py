@@ -3,7 +3,7 @@ from __future__ import annotations
 import pytest
 
 handcalcs = pytest.importorskip("handcalcs")
-from steelconnectionjm.memos import rbs_aisc358_memo
+from steeljoints.memos import rbs_aisc358_memo
 
 
 def _w24x76_typical():

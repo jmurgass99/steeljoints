@@ -1,7 +1,7 @@
 # -*- coding: utf-8 -*-
-"""Tests para la generacion de decks FEA de nudos de acero en SteelConnectionJm."""
-from steelconnectionjm.steelnode import generate_inp_deck
-from steelconnectionjm.steelnode_schemas import PlateDeckIn
+"""Tests para la generacion de decks FEA de nudos de acero en SteelJoints."""
+from steeljoints.steelnode import generate_inp_deck
+from steeljoints.steelnode_schemas import PlateDeckIn
 
 
 def test_steelnode_deck_in_steelconnection():

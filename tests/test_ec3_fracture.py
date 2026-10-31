@@ -1,8 +1,8 @@
-"""Tests for steelconnectionjm.ec3_fracture (EN 1993-1-10)."""
+"""Tests for steeljoints.ec3_fracture (EN 1993-1-10)."""
 
 import pytest
 
-from steelconnectionjm.ec3_fracture import (
+from steeljoints.ec3_fracture import (
     Z_property_required,
     reference_temperature,
     t_max_brittle_fracture,

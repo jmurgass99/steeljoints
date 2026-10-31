@@ -1,5 +1,5 @@
 """Tests WUF-W."""
-from steelconnectionjm.wuf_w import WUFWInput, design_wuf_w
+from steeljoints.wuf_w import WUFWInput, design_wuf_w
 
 
 def test_demanda_basica():

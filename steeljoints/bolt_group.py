@@ -25,7 +25,7 @@ from math import sqrt, exp, atan2, cos, sin
 
 from .exceptions import ConvergenceError, ConfigurationError
 
-log = logging.getLogger("steelconnectionjm.bolt_group")
+log = logging.getLogger("steeljoints.bolt_group")
 
 
 # Bolt load-deformation curve constants (Crawford & Kulak, AISC Manual)

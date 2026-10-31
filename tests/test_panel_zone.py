@@ -2,7 +2,7 @@
 from __future__ import annotations
 import pytest
 
-from steelconnectionjm.panel_zone import (
+from steeljoints.panel_zone import (
     PanelZoneInput, shear_capacity, PanelZoneResult,
 )
 

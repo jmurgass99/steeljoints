@@ -1,4 +1,4 @@
-# SteelConnectionJm - Testing Guide
+# SteelJoints - Testing Guide
 
 ## Filosofia
 

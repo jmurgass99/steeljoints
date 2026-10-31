@@ -45,8 +45,8 @@ import math
 
 import pytest
 
-from jmstructural_common.audit_status import CalculationStatus
-from steelconnectionjm.services import wuf
+from steeljoints._common.audit_status import CalculationStatus
+from steeljoints.services import wuf
 
 CUMPLE = CalculationStatus.CALCULADO_CUMPLE
 FALLA = CalculationStatus.CALCULADO_FALLA
@@ -221,7 +221,7 @@ def client():
     pytest.importorskip("fastapi")
     pytest.importorskip("httpx")
     from fastapi.testclient import TestClient
-    from steelconnectionjm.api.app import app
+    from steeljoints.api.app import app
     return TestClient(app)
 
 

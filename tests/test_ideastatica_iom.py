@@ -4,7 +4,7 @@ from __future__ import annotations
 import json
 import pytest
 
-from steelconnectionjm.ideastatica_iom import (
+from steeljoints.ideastatica_iom import (
     IdeaOpenModelConnection,
     IomCrossSection,
     IomLoadCase,

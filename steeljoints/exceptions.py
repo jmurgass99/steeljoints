@@ -1,4 +1,4 @@
-"""Jerarquía de excepciones tipadas de SteelConnectionJm.
+"""Jerarquía de excepciones tipadas de SteelJoints.
 
 Permite al caller (REST API, AI Copilot, bridge FastSAP) distinguir
 entre:

@@ -1,4 +1,4 @@
-"""Service layer de SteelConnectionJm.
+"""Service layer de SteelJoints.
 
 Funciones puras tipadas que envuelven los calculos de diseno de conexiones
 de acero (AISC 360, AISC 358, EC3-1-8, NSR-10 F.2). Reutilizables desde

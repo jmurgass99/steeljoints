@@ -30,7 +30,7 @@ from __future__ import annotations
 
 import pytest
 
-from steelconnectionjm.base_plate import BasePlate
+from steeljoints.base_plate import BasePlate
 
 
 def _placa(Pu: float, Mu: float = 150.0) -> BasePlate:
@@ -57,7 +57,7 @@ def test_design_con_traccion_emite_informe_en_vez_de_reventar(Pu: float) -> None
 
 
 def test_fastsap_una_placa_en_levantamiento_no_firma_ni_revienta() -> None:
-    """Ruta de produccion: fastsap.design -> SteelConnectionJm.BasePlate.design()."""
+    """Ruta de produccion: fastsap.design -> SteelJoints.BasePlate.design()."""
     fastsap_design = pytest.importorskip("fastsap.design")
     req = fastsap_design.DesignRequest(
         element_id="BP1", element_type="connection", material="steel",

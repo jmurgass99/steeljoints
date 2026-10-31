@@ -1,7 +1,7 @@
 """Tests block shear multi-código."""
 import pytest
 
-from steelconnectionjm.block_shear_multi import BlockShearInput, block_shear
+from steeljoints.block_shear_multi import BlockShearInput, block_shear
 
 
 @pytest.fixture
