@@ -38,6 +38,9 @@ Issues = "https://github.com/jmurgass99/steeljoints/issues"
 [tool.setuptools.packages.find]
 include = ["steeljoints*"]
 
+[tool.setuptools.package-data]
+steeljoints = ["py.typed"]
+
 [tool.pytest.ini_options]
 testpaths = ["tests"]
 markers = [

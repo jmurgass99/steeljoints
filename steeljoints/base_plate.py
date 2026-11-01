@@ -177,6 +177,83 @@ class BasePlate:
             "note": note,
         }
 
+    def dg1_eccentric_pressure(self, edge_dist_f_mm: float = 50.0) -> dict:
+        """AISC Design Guide 1 (2nd/3rd Ed.) §3.4 & §3.5 eccentric compression + moment.
+
+        Computes equivalent uniform bearing block length ``Y`` [mm], bearing pressure
+        ``fp_max`` [MPa], critical eccentricity ``e_crit`` [mm], and total anchor tension
+        ``Tu_kN`` [kN] for small (`e <= e_crit`) or large (`e > e_crit`) eccentricity.
+        """
+        if self.Pu_N <= 0:
+            lever_arm = max(self.plate_N - 2.0 * edge_dist_f_mm, 1.0)
+            Tu_N = abs(self.Pu_N) + abs(self.Mu_Nmm) / lever_arm
+            return {
+                "regime": "uplift",
+                "e_mm": float("inf"),
+                "e_crit_mm": 0.0,
+                "Y_mm": 0.0,
+                "fp_MPa": 0.0,
+                "q_max_N_per_mm": 0.65 * self.Fp_max * self.plate_B,
+                "Tu_total_kN": round(Tu_N / 1000.0, 3),
+                "Tu_per_bolt_kN": round(Tu_N / (1000.0 * max(self.n_anchors, 1)), 3),
+                "is_bearing_ok": True,
+            }
+
+        phi_Fp = 0.65 * self.Fp_max
+        q_max = phi_Fp * self.plate_B  # N/mm
+        e = abs(self.Mu_Nmm) / self.Pu_N  # mm
+        e_crit = self.plate_N / 2.0 - self.Pu_N / (2.0 * q_max)
+        f_dist = self.plate_N / 2.0 - edge_dist_f_mm
+
+        if e <= max(e_crit, 0.0):
+            # Small moment (DG1 §3.4): no tension in anchors, Y = N - 2e
+            Y = max(self.plate_N - 2.0 * e, 1e-6)
+            q = self.Pu_N / Y
+            fp = q / self.plate_B
+            return {
+                "regime": "small_moment",
+                "e_mm": round(e, 3),
+                "e_crit_mm": round(e_crit, 3),
+                "Y_mm": round(Y, 3),
+                "fp_MPa": round(fp, 3),
+                "q_max_N_per_mm": round(q_max, 3),
+                "Tu_total_kN": 0.0,
+                "Tu_per_bolt_kN": 0.0,
+                "is_bearing_ok": fp <= phi_Fp + 1e-9,
+            }
+
+        # Large moment (DG1 §3.5): Y^2 - 2*(N/2 + f)*Y + 2*Pu*(e + f)/q_max = 0
+        sum_half_f = self.plate_N / 2.0 + f_dist
+        disc = sum_half_f**2 - 2.0 * self.Pu_N * (e + f_dist) / q_max
+        if disc < 0.0:
+            Y = sum_half_f
+            Tu_N = max(q_max * Y - self.Pu_N, 0.0)
+            return {
+                "regime": "large_moment_overstressed",
+                "e_mm": round(e, 3),
+                "e_crit_mm": round(e_crit, 3),
+                "Y_mm": round(Y, 3),
+                "fp_MPa": round(phi_Fp, 3),
+                "q_max_N_per_mm": round(q_max, 3),
+                "Tu_total_kN": round(Tu_N / 1000.0, 3),
+                "Tu_per_bolt_kN": round(Tu_N / (1000.0 * max(self.n_anchors, 1)), 3),
+                "is_bearing_ok": False,
+            }
+
+        Y = sum_half_f - sqrt(disc)
+        Tu_N = max(q_max * Y - self.Pu_N, 0.0)
+        return {
+            "regime": "large_moment",
+            "e_mm": round(e, 3),
+            "e_crit_mm": round(e_crit, 3),
+            "Y_mm": round(Y, 3),
+            "fp_MPa": round(phi_Fp, 3),
+            "q_max_N_per_mm": round(q_max, 3),
+            "Tu_total_kN": round(Tu_N / 1000.0, 3),
+            "Tu_per_bolt_kN": round(Tu_N / (1000.0 * max(self.n_anchors, 1)), 3),
+            "is_bearing_ok": Y <= self.plate_N,
+        }
+
     def design(self) -> dict:
         """Full base plate design report."""
         checks = [

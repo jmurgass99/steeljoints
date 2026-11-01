@@ -4,8 +4,8 @@ aisc358.py — AISC 358-22 Prequalified Connections for Seismic Applications.
 Esta versión cubre los parámetros clave para:
 
   §5  RBS (Reduced Beam Section)         — geometría a, b, c
-  §6  Bolted Unstiffened End Plate (BUEEP / 4ES / 8ES) — geometría y Mpr
-  §7  Bolted Stiffened Extended End Plate (BSEEP)
+  §6  Bolted Unstiffened End Plate (BUEEP / 4E) — geometría y Mpr
+  §7  Bolted Stiffened Extended End Plate (BSEEP / 4ES / 8ES)
   §8  Bolted Flange Plate (BFP)
 
 Funciones devuelven:
@@ -24,6 +24,7 @@ RY: dict[str, float] = {
     "A36": 1.5,
     "A572-50": 1.1,
     "A992": 1.1,
+    "A913-50": 1.1,
     "A913-50": 1.1,
     "A913-65": 1.1,
     "A913-70": 1.1,
@@ -106,24 +107,43 @@ def end_plate_thickness_required(Mu_Nmm: float, bp_mm: float,
 def Yp_4E_unstiffened(bp: float, g: float, pfo: float, pfi: float,
                        h0: float, h1: float, s: float) -> float:
     """
-    Parámetro Yp para 4-bolt extended unstiffened (4E), AISC 358 Tabla 6.2.
-    bp = ancho placa; g = gage horizontal; pfo,pfi = dist. de las filas
-    al ala; h0,h1 = dist. de las filas al eje del ala COMPRIMIDA; s = √(bp·g)/2.
+    Parámetro Yp para 4-bolt extended unstiffened (4E), AISC 358 Tabla 6.2 / AISC DG4 Tabla 3.1.
+    bp = ancho placa; g = gage horizontal; pfo, pfi = dist. de las filas
+    exterior e interior al ala traccionada; h0, h1 = dist. de las filas al eje
+    del ala comprimida; s = √(bp·g)/2.
 
-    SIN CONTRASTAR (1.2.0): la expresión lleva los términos h0/(2s) y h0·(pfo + s) que la forma
-    de 4E que suele reproducirse no tiene, y que se parecen a la del caso rigidizado (4ES). No se
-    ha podido verificar contra la Tabla 6.2 de AISC 358, así que no se cambia; con las cotas por
-    defecto de ``EndPlate`` da un Yp un 30–40 % mayor que la forma reducida
-    bp/2·[h1(1/pfi + 1/s) + h0/pfo − 1/2] + 2/g·h1(pfi + s). Compruébalo antes de usar φMn.
+    Ecuación normativa AISC 358 Tabla 6.2 (sin rigidizador):
+      Yp = (bp/2)·[h1·(1/pfi + 1/s) + h0·(1/pfo) − 1/2] + (2/g)·[h1·(pfi + s)]
     """
     if s <= 0:
         s = sqrt(bp * g) / 2.0
     Yp = (bp / 2.0) * (
         h1 * (1.0 / pfi + 1.0 / s)
-        + h0 * (1.0 / pfo + 1.0 / (2.0 * s))
+        + h0 * (1.0 / pfo)
         - 0.5
-    ) + (2.0 / g) * (h1 * (pfi + s) + h0 * (pfo + s))
+    ) + (2.0 / g) * (h1 * (pfi + s))
     return Yp
+
+
+def Yp_4ES_stiffened(bp: float, g: float, pfo: float, pfi: float,
+                      h0: float, h1: float, s: float, de: float = 40.0) -> float:
+    """
+    Parámetro Yp para 4-bolt extended stiffened (4ES), AISC 358 Tabla 6.3 / AISC DG4 Tabla 3.2.
+    Incluye la contribución del rigidizador entre el ala extendida y la fila exterior ``h0``.
+    Caso 1 (de <= s):
+      Yp = (bp/2)·[h1·(1/pfi + 1/s) + h0·(1/pfo + 1/(2s))] + (2/g)·[h1·(pfi + s) + h0·(de + pfo/4)]
+    Caso 2 (de > s):
+      Yp = (bp/2)·[h1·(1/pfi + 1/s) + h0·(1/pfo + 1/s)] + (2/g)·[h1·(pfi + s) + h0·(s + pfo/4)]
+    """
+    if s <= 0:
+        s = sqrt(bp * g) / 2.0
+    if de <= s:
+        return (bp / 2.0) * (
+            h1 * (1.0 / pfi + 1.0 / s) + h0 * (1.0 / pfo + 1.0 / (2.0 * s))
+        ) + (2.0 / g) * (h1 * (pfi + s) + h0 * (de + pfo / 4.0))
+    return (bp / 2.0) * (
+        h1 * (1.0 / pfi + 1.0 / s) + h0 * (1.0 / pfo + 1.0 / s)
+    ) + (2.0 / g) * (h1 * (pfi + s) + h0 * (s + pfo / 4.0))
 
 
 # ---------------------------------------------------------------------------
