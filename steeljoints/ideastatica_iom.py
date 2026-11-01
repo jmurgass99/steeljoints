@@ -1,16 +1,17 @@
 """IDEA StatiCa Open Model (IOM) & Dlubal RFEM 6 gRPC Bridge — SteelJoints.
 
-Implements structural connection interoperability:
-  1. **IDEA Open Model (IOM v2025/2026)**:
-     - Generates valid IDEA StatiCa Open Model (IOM) JSON and XML data structures
-       compatible with IDEA StatiCa Checkbot and ``ideastatica-connection-api``
-       for Component-Based Finite Element Method (CBFEM) joint and member verification.
-     - Maps structural frame nodes, connected members, cross-sections, steel materials,
-       and 6-DOF internal forces (N, Vy, Vz, Mx, My, Mz) per load case.
-  2. **Dlubal RFEM 6 gRPC Interface**:
-     - Standardized gRPC envelope and payload structure matching ``dlubal.api``
-       for programmatic export of member geometry, materials, and support conditions
-       without graphical interaction.
+ESTADO REAL (1.2.0): estructura PROPIA con nombres inspirados en el IDEA Open Model, no el formato
+que importa IDEA StatiCa. Probado contra IDEA StatiCa 21.1: el ``XmlSerializer`` de
+``IdeaRS.OpenModel.OpenModel`` RECHAZA el XML de ``export_iom_xml`` (su raíz real es ``OpenModel`` con
+``Version`` 2, unidades SI base y tipos ``xsi:type``; aquí la raíz es ``IdeaOpenModel``). El diccionario
+de ``export_iom_dict`` y la petición de ``build_rfem6_grpc_payload`` tampoco se han validado contra
+IDEA ni contra Dlubal RFEM 6: son contenedores de datos (nodos, barras, secciones, esfuerzos por
+caso) para construir el fichero real fuera de aquí.
+
+Contenido:
+  1. Nodos, barras conectadas, secciones en I, un acero y esfuerzos de extremo (N, Vy, Vz, Mx, My, Mz)
+     por caso de carga, serializados a dict y a XML.
+  2. Un diccionario con la forma de una petición «create_model» para RFEM 6 (no hace ninguna llamada).
 
 All public dataclasses declare ``units`` explicitly and avoid unit-suffixed field names.
 """

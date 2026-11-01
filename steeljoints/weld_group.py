@@ -404,7 +404,13 @@ class WeldGroupICR:
         return Fx_sum, Fy_sum, M_ic, r_max, contribs
 
     def _solve_ic_newton2d(self, tol: float = 1e-4, max_iter: int = 50):
-        from scipy.optimize import fsolve
+        try:
+            from scipy.optimize import fsolve
+        except ImportError as exc:  # pragma: no cover - depende del entorno
+            from .exceptions import DependencyError
+            raise DependencyError(
+                "el centro instantáneo con carga oblicua o excéntrica necesita scipy: "
+                "pip install steeljoints[numeric]") from exc
         Px_hat, Py_hat, perp_x, perp_y, sign, ex_abs = self._load_geometry()
         # Punto de aplicación de la carga (coords globales)
         Ax = self.cx + sign * ex_abs * perp_x
@@ -470,7 +476,10 @@ class WeldGroupICR:
     def solve(self, tol: float = 1e-4, max_iter: int = 50) -> dict:
         """
         Resuelve por ICR usando Newton 2D; cae a bisección 1D si falla.
-        Caso degenerado (ex_mm ≈ 0): cortante puro centrado, Pn = ΣR(Δmax)·L.
+        Caso degenerado (ex_mm ≈ 0): traslación pura con compatibilidad de deformaciones. Todos los
+        elementos se deforman lo mismo y la deformación es la última del elemento menos dúctil
+        (el transversal): Pn = Σ R(θ_i, Δ_crit)·L_i. Hasta la versión 1.1 cada elemento iba a su propia
+        Δu y un grupo en C de 200 × 100 mm daba 819 kN en vez de 762 kN (AISC 360-22 §J2.4(b)(2): 770 kN).
         """
         ex_abs = abs(self.ex_mm)
         # --- Caso degenerado: carga centrada ---
@@ -479,21 +488,25 @@ class WeldGroupICR:
             # 90° (transversal) según la dirección de carga.
             import math
             ang = math.radians(self.load_angle_deg)
-            Pn = 0.0
+            load_dir = (math.sin(ang), math.cos(ang))
+            props = []   # (dL, w, θ, Δu en mm) de cada elemento
             for (x, y, dL, w, ax) in self.elements:
                 # Ángulo entre carga y eje de la soldadura
-                load_dir = (math.sin(ang), math.cos(ang))
                 weld_axis = (cos(ax), sin(ax))
                 cth = abs(load_dir[0]*weld_axis[0] + load_dir[1]*weld_axis[1])
                 cth = min(1.0, max(0.0, cth))
                 theta_deg = degrees(math.acos(cth))
-                # Δ máxima del elemento (mismo cap que el solver iterativo)
+                # Δu del elemento (mismo cap que el solver iterativo)
                 w_in = w / 25.4
                 du_in = min(DELTA_U_FACTOR_IN * w_in * (theta_deg + 6.0)**(-0.65),
                             DELTA_U_CAP_IN * w_in)
-                delta_mm = du_in * 25.4
+                props.append((dL, w, theta_deg, du_in * 25.4))
+            # Traslación pura: misma deformación en todos, la del elemento que antes llega a su Δu.
+            delta_crit = min(p[3] for p in props)
+            Pn = 0.0
+            for dL, w, theta_deg, _du in props:
                 R_per_mm = _weld_capacity_at_angle_deformation(
-                    theta_deg, delta_mm, w, self.FEXX_MPa)
+                    theta_deg, delta_crit, w, self.FEXX_MPa)
                 Pn += R_per_mm * dL
             util = self.Pu_N / Pn if Pn > 0 else float("inf")
             return {

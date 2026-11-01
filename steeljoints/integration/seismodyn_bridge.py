@@ -61,8 +61,8 @@ class RBSConnectionDefinition:
 class ConnectionCheckRow:
     """Una fila del reporte: una conexion vs su demanda."""
     beam_id: str
-    M_demand_kNm: float
-    M_pr_capacity_kNm: float
+    M_demand_kNm: float | None        # None: la viga no tiene demanda en el analisis
+    M_pr_capacity_kNm: float | None   # None: la geometria RBS no es evaluable
     utilization_ratio: float | None   # |M_demand| / M_pr; None sin demanda evaluable
     is_safe: bool                     # == calculation_status is CALCULADO_CUMPLE
     geometry_ok: bool
@@ -118,17 +118,36 @@ def verify_connections_vs_demand(connections: list[RBSConnectionDefinition], dem
 
     report = BridgeReport(n_total=0, n_safe=0, n_unsafe=0, n_geometry_violations=0)
 
+    def _sin_geometria(beam_id: str, M_demand: float | None, exc: ValueError) -> None:
+        # Una viga con geometria no evaluable (p. ej. luz menor que 2·(a + b/2)) no
+        # aborta el informe del portico: sale como fila REQUIERE_REVISION.
+        motivo = f"geometria RBS no evaluable: {exc}"
+        report.rows.append(ConnectionCheckRow(
+            beam_id=beam_id, M_demand_kNm=M_demand, M_pr_capacity_kNm=None,
+            utilization_ratio=None, is_safe=False, geometry_ok=False,
+            notes=[f"Sin veredicto: {motivo}"],
+            calculation_status=CalculationStatus.REQUIERE_REVISION,
+            missing_inputs=[motivo],
+        ))
+        report.n_total += 1
+        report.n_sin_veredicto += 1
+        report.n_geometry_violations += 1
+
     for d in demands:
         conn = conn_by_id.get(d.beam_id)
         if conn is None:
             raise ValueError(f"demand para beam_id='{d.beam_id}' sin conexion definida")
 
-        _, rbs = rbs_aisc358_memo(
-            beam_d=conn.beam_d, beam_bf=conn.beam_bf, beam_tf=conn.beam_tf,
-            beam_Z_x=conn.beam_Z_x, a=conn.a, b=conn.b, c=conn.c,
-            L_clear=conn.L_clear, wu=conn.wu,
-            Fy=conn.Fy, Ry=conn.Ry, Cpr=conn.Cpr,
-        )
+        try:
+            _, rbs = rbs_aisc358_memo(
+                beam_d=conn.beam_d, beam_bf=conn.beam_bf, beam_tf=conn.beam_tf,
+                beam_Z_x=conn.beam_Z_x, a=conn.a, b=conn.b, c=conn.c,
+                L_clear=conn.L_clear, wu=conn.wu,
+                Fy=conn.Fy, Ry=conn.Ry, Cpr=conn.Cpr,
+            )
+        except ValueError as exc:
+            _sin_geometria(d.beam_id, d.M_Ed_kNm, exc)
+            continue
 
         capacity_with_margin = rbs.M_pr_kNm / safety_margin
         capacidad_ok = capacity_with_margin > 0
@@ -206,6 +225,39 @@ def verify_connections_vs_demand(connections: list[RBSConnectionDefinition], dem
         if util_publicado is not None and util_publicado > report.max_utilization:
             report.max_utilization = util_publicado
             report.critical_beam = d.beam_id
+
+    # Conexiones sin demanda: hasta la versión 1.1 desaparecían del informe porque el bucle solo
+    # recorría las demandas. Ahora salen como fila NO_CALCULADO, nunca como seguras ni omitidas.
+    con_demanda = {d.beam_id for d in demands}
+    for conn in connections:
+        if conn.beam_id in con_demanda:
+            continue
+        try:
+            _, rbs = rbs_aisc358_memo(
+                beam_d=conn.beam_d, beam_bf=conn.beam_bf, beam_tf=conn.beam_tf,
+                beam_Z_x=conn.beam_Z_x, a=conn.a, b=conn.b, c=conn.c,
+                L_clear=conn.L_clear, wu=conn.wu,
+                Fy=conn.Fy, Ry=conn.Ry, Cpr=conn.Cpr,
+            )
+        except ValueError as exc:
+            _sin_geometria(conn.beam_id, None, exc)
+            continue
+        motivo = f"sin demanda para beam_id='{conn.beam_id}'"
+        report.rows.append(ConnectionCheckRow(
+            beam_id=conn.beam_id,
+            M_demand_kNm=None,
+            M_pr_capacity_kNm=rbs.M_pr_kNm,
+            utilization_ratio=None,
+            is_safe=False,
+            geometry_ok=rbs.is_geometry_ok,
+            notes=[f"Sin veredicto: {motivo}"],
+            calculation_status=CalculationStatus.NO_CALCULADO,
+            missing_inputs=[motivo],
+        ))
+        report.n_total += 1
+        report.n_sin_veredicto += 1
+        if not rbs.is_geometry_ok:
+            report.n_geometry_violations += 1
 
     log.info(
         "verify_connections: %d/%d safe, %d sin veredicto (max util = %.2f en %s)",

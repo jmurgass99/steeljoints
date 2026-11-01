@@ -145,8 +145,9 @@ def test_el_axil_reduce_el_scwb() -> None:
     con = _wuf(Mu_demand_kNm=600.0)
     cota = _wuf(Mu_demand_kNm=600.0, Pu_col_kN=None, Py_col_kN=None)
 
-    assert cota.scwb_ratio == pytest.approx(
-        COLUMNA["col_Zx_mm3"] * COLUMNA["col_Fy_MPa"] / (VIGA["beam_Zx_mm3"] * VIGA["beam_Fy_MPa"]))
+    # v1.2: M*pb = Mpr + Vpr·dc/2 (AISC 341 §E3.4a); la v1.1 usaba Zb·Fyb nominal.
+    m_pb = cota.M_pr_kNm + cota.V_pr_kN * COLUMNA["col_d_mm"] / 2000.0
+    assert cota.scwb_ratio == pytest.approx(COLUMNA["col_Zx_mm3"] * COLUMNA["col_Fy_MPa"] / 1e6 / m_pb)
     assert con.scwb_ratio == pytest.approx(cota.scwb_ratio * (1.0 - 1000.0 / 8000.0))
 
 

@@ -130,8 +130,10 @@ class EndPlate:
             self.Mpr_Nmm = self.Mu_Nmm
 
         # Internal Bolt object (legacy strength engine)
+        # Rosca en el plano de corte (Fnv «-N»), igual que bolt_shear_check: es la hipótesis
+        # conservadora y la que usa la interacción J3.7 de bolt_tension_check.
         self._bolt = Bolt(self.bolt_diameter, self.bolt_grade, self.code,
-                          threads_in_shear_plane=False, n_shear_planes=1)
+                          threads_in_shear_plane=True, n_shear_planes=1)
 
     # ------------------------------------------------------------------
     # Geometry helpers for yield-line analysis (AISC 358 §6 Table 6.2)
@@ -147,8 +149,11 @@ class EndPlate:
         pfi = self.pfi
         # h0 / h1: distances from the centerline of the compression flange
         # to the outer / inner tension bolt rows
+        # h1: la fila interior está a pfi de la cara INTERIOR del ala traccionada, es decir a
+        # d − tf − pfi del borde inferior; menos tf/2 hasta el eje del ala comprimida. Hasta la
+        # versión 1.1 se restaba solo tf/2 (h1 un tf mayor, Yp y φMn algo altos).
         h0 = self.beam_depth - self.beam_tf / 2.0 + self.pfo
-        h1 = self.beam_depth - self.beam_tf / 2.0 - self.pfi
+        h1 = self.beam_depth - 1.5 * self.beam_tf - self.pfi
         s = sqrt(bp * g) / 2.0
         return aisc358.Yp_4E_unstiffened(bp, g, pfo, pfi, h0, h1, s)
 

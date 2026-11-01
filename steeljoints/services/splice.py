@@ -26,4 +26,6 @@ def design_splice(inp: SpliceInput) -> SpliceResult:
     Mn = T * 0.5
     dcr = (inp.Mu_kNm * 1e3) / Mn if Mn > 0 else 99
     return SpliceResult(Mn_kNm=Mn / 1e3, DCR=dcr,
-                        notes=[f"Mn = {Mn/1e3:.1f} kN*m, DCR = {dcr:.2f}"])
+                        notes=[f"Mn = {Mn/1e3:.1f} kN*m, DCR = {dcr:.2f}",
+                               "PROVISIONAL: Fy = 345 MPa fijo y brazo fijo de 0,5 m (la entrada no trae el canto); "
+                               "no comprueba pernos, alma ni cortante"])

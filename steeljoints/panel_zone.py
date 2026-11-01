@@ -3,19 +3,17 @@ panel_zone.py — Cortante en panel zone (zona de panel viga-columna).
 
 AISC 360-22 §J10.6 — Web panel zone shear.
 
-Caso (a): considerando deformación inelástica del panel zone:
-    Si  Pr ≤ 0.4·Pc:
-        Rn = 0.60·Fy·dc·tw·[1 + (3·bcf·tcf²) / (db·dc·tw)]
-    Si  Pr > 0.4·Pc:
-        Rn = 0.60·Fy·dc·tw·[1.4 - Pr/Pc]·[1 + (3·bcf·tcf²)/(db·dc·tw)]
-    (φ = 0.90)
+Cuando el análisis del pórtico NO considera la deformación de la zona de panel:
+    Si  αPr ≤ 0.4·Pc:   Rn = 0.60·Fy·dc·tw
+    Si  αPr > 0.4·Pc:   Rn = 0.60·Fy·dc·tw·(1.4 − αPr/Pc)
 
-Caso (b): cuando NO se considera deformación inelástica:
-    Si  Pr ≤ 0.4·Pc:
-        Rn = 0.60·Fy·dc·tw
-    Si  Pr > 0.4·Pc:
-        Rn = 0.60·Fy·dc·tw·(1.4 - Pr/Pc)
-    (φ = 0.90)
+Cuando SÍ la considera (deformación inelástica de la zona de panel):
+    Si  αPr ≤ 0.75·Pc:  Rn = 0.60·Fy·dc·tw·[1 + 3·bcf·tcf² / (db·dc·tw)]
+    Si  αPr > 0.75·Pc:  Rn = 0.60·Fy·dc·tw·[1 + 3·bcf·tcf² / (db·dc·tw)]·(1.9 − 1.2·αPr/Pc)
+
+(φ = 0.90, LRFD α = 1.0, Pc = Py.) Hasta la versión 1.1 la API funcional omitía la reducción
+(1.4 − Pr/Pc) del primer caso (lado inseguro con axil alto) y la clase aplicaba el umbral 0,4 y
+(1.4 − Pr/Pc) también al segundo (lado seguro, hasta un 36 % de capacidad perdida).
 
 Si Rn < Vu_panel, se requiere doubler plate de espesor tdp tal que:
     Rn(con tw_total = tw + tdp) ≥ Vu_panel
@@ -82,9 +80,14 @@ def shear_capacity(p: PanelZoneInput, V_demand: float = 0.0) -> PanelZoneResult:
     notes: list = []
     Fy = p.Fy_c
     Vn_elastic = 0.60 * Fy * p.d_c * p.t_w
+    ratio = p.P_u / max(p.P_y, 1e-9)
     if not p.consider_plastification:
-        notes.append("Sin plastificación (J10-9)")
-        Vn = Vn_elastic
+        if ratio > 0.4:
+            Vn = Vn_elastic * max(1.4 - ratio, 0.0)
+            notes.append(f"Sin plastificación, Pu/Py={ratio:.2f} > 0.4 -> 1.4 - Pu/Py (J10-10)")
+        else:
+            Vn = Vn_elastic
+            notes.append("Sin plastificación (J10-9)")
         gov = "elastic"
     else:
         factor = 1.0 + (3.0 * p.b_f_c * p.t_f_c**2) / (p.d_b * p.d_c * p.t_w)
@@ -171,10 +174,10 @@ class PanelZone:
             incr = 1.0 + (3.0 * self.bcf_mm * self.tcf_mm**2) / (self.db_mm * dc * tw)
         else:
             incr = 1.0
-        if ratio <= 0.4:
-            Rn = Rn_base * incr
+        if self.inelastic_action:
+            Rn = Rn_base * incr * (1.0 if ratio <= 0.75 else (1.9 - 1.2 * ratio))
         else:
-            Rn = Rn_base * (1.4 - ratio) * incr
+            Rn = Rn_base * (1.0 if ratio <= 0.4 else (1.4 - ratio))
         return max(Rn, 0.0)
 
     def capacity(self) -> dict:

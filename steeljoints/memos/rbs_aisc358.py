@@ -48,8 +48,14 @@ def _rbs_moment_capacity(Z_x, c, tf, d, Fy, Ry, Cpr):
 
 @handcalc(override="long", precision=3)
 def _rbs_shear_and_face_moment(M_pr, Lh_mm, wu, L_clear):
-    """Cortante en rotula plastica y momento en cara de columna."""
-    Vp = (2 * M_pr) / (L_clear * 1000) + wu * L_clear / 2
+    """Cortante en el centro del RBS y momento en la cara del pilar (AISC 358 §5.8, pasos 4 y 5).
+
+    ``Lh_mm`` es Sh = a + b/2 (cara del pilar al centro del RBS) y ``L_h`` la distancia entre rótulas.
+    Hasta la versión 1.1 se dividía M_pr [kN·m] por L_clear en mm: el término sísmico salía 1000 veces
+    menor (Vp 105 kN en vez de 471 kN en una W610 × 125). Mismo cálculo que ``services.rbs``.
+    """
+    L_h = L_clear - 2 * Lh_mm / 1000
+    Vp = 2 * M_pr / L_h + wu * L_clear / 2
     M_f = M_pr + Vp * (Lh_mm / 1000)
     return Vp, M_f
 
@@ -83,6 +89,8 @@ def rbs_aisc358_memo(beam_d, beam_bf, beam_tf, beam_Z_x,
         raise ValueError("a >= 0, b > 0, c > 0")
     if Fy <= 0 or Ry < 1.0 or Cpr < 1.0:
         raise ValueError("Fy positivo, Ry y Cpr >= 1.0")
+    if L_clear * 1000.0 <= 2.0 * (a + b / 2.0):
+        raise ValueError("L_clear debe superar 2·(a + b/2): no queda distancia entre rotulas")
 
     # Geometria limits AISC 358 §5.8.1
     a_min = 0.5 * beam_bf

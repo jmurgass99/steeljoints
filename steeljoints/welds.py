@@ -72,11 +72,14 @@ class FilletWeld:
         return phi * Rn
 
     # ------------------------------------------------------------------
-    # EN 1993-1-8 §4.5.3 — Directional method
+    # EN 1993-1-8 §4.5.3.3 — Método simplificado
     # ------------------------------------------------------------------
     def ec3_strength(self, fu: float, gamma_M2: float = 1.25) -> float:
         """
-        Fw,Rd (design weld strength) per EC3-1-8 §4.5.3.2 [N].
+        Fw,Rd = fvw,d·a·L con fvw,d = fu/(√3·βw·γM2), método simplificado de EN 1993-1-8 §4.5.3.3 [N].
+
+        No usa ``theta``: el método simplificado es independiente de la dirección de la carga.
+        El método direccional (§4.5.3.2) está en ``codes.ec3_1_8.fillet_weld_Rd_directional``.
 
         Parameters
         ----------
@@ -91,14 +94,9 @@ class FilletWeld:
             Fw,Rd (assuming S275's 0.85 for an S460 joint overstates the
             design resistance by 1.00/0.85 = +17.6 %).
         """
-        grade = "" if self.steel_grade is None else str(self.steel_grade).strip().upper()
-        beta_w = _EC3_BETA_W.get(grade)
-        if beta_w is None:
-            raise ValueError(
-                f"Grado de acero desconocido para beta_w (EN 1993-1-8:2005 "
-                f"Tabla 4.1): {self.steel_grade!r}. "
-                f"Conocidos: {sorted(_EC3_BETA_W)}"
-            )
+        from steeljoints.codes.ec3_1_8 import beta_w as _beta_w
+
+        beta_w = _beta_w(self.steel_grade)   # acepta «S355J2»; rechaza lo que no está en la Tabla 4.1
         Fw_Rd = fu / (beta_w * sqrt(3) * gamma_M2) * self.a * self.length
         return Fw_Rd
 
@@ -182,12 +180,18 @@ class WeldGroup:
 
         Parameters
         ----------
-        Vu : float  applied shear [N]
-        Mu : float  moment [N·mm]
+        Vu : float  applied shear [N], vertical (+y) at the group centroid
+        Mu : float  moment about the centroid [N·mm], counter-clockwise positive
         phi_Rn_per_unit : float  design strength per mm of weld [N/mm]
 
         Notes
         -----
+        La tensión se evalúa en los extremos de cada cordón. Hasta la versión 1.1 se evaluaba en
+        el centro de cada cordón con el coseno director equivocado: un cordón único centrado
+        ignoraba el momento por completo y en los demás grupos la tensión máxima salía baja
+        (un 8 % en dos cordones horizontales de 200 mm). Coincide con
+        ``weld_group.WeldGroupElastic`` cuando todos los cordones tienen la misma garganta.
+
         La ausencia se propaga como ausencia. Si falta la capacidad de diseño
         (``phi_Rn_per_unit <= 0`` o garganta nula) o el momento aplicado no es
         distribuible (``Ip <= 0`` con ``Mu != 0``), la comprobación NO se hizo:
@@ -207,19 +211,20 @@ class WeldGroup:
         if Mu != 0.0 and not (Ip > 0):
             missing_inputs.append("polar_moment_Ip")
 
-        fv_direct = Vu / total_Aw  # direct shear stress [N/mm²]
+        fv_direct = Vu / total_Aw  # cortante directo vertical (+y) [N/mm²]
 
+        # La tensión se evalúa en los dos extremos de cada cordón, donde el brazo es máximo:
+        # torsión f_t = Mu/Ip·(−ry, rx), sumada vectorialmente al cortante directo vertical.
         max_f = 0.0
-        for Aw, (x, y) in zip(self.Aw_list, self.positions):
-            rx = x - self.cx
-            ry = y - self.cy
-            r = sqrt(rx**2 + ry**2)
-            # Ip <= 0 solo llega aquí con Mu == 0 (si no, ya está en missing).
-            ft = Mu * r / Ip if Ip > 0 else 0.0
-            # r == 0 es el centroide: ahí ft == 0 y el término cruzado se
-            # anula de veras — coseno director legítimamente nulo.
-            f_total = sqrt(fv_direct**2 + ft**2 + 2 * fv_direct * ft * (ry / r if r > 0 else 0.0))
-            max_f = max(max_f, f_total)
+        for w, (x, y), ang in zip(self.welds, self.positions, self.angles):
+            ux, uy = cos(radians(ang)), sin(radians(ang))
+            for sgn in (-1.0, 1.0):
+                rx = x + sgn * 0.5 * w.length * ux - self.cx
+                ry = y + sgn * 0.5 * w.length * uy - self.cy
+                # Ip <= 0 solo llega aquí con Mu == 0 (si no, ya está en missing).
+                ftx = -Mu * ry / Ip if Ip > 0 else 0.0
+                fty = Mu * rx / Ip if Ip > 0 else 0.0
+                max_f = max(max_f, sqrt(ftx**2 + (fv_direct + fty) ** 2))
 
         if missing_inputs:
             util = float("inf")

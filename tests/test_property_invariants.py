@@ -121,7 +121,7 @@ def test_fillet_weld_transverse_stronger_than_longitudinal(leg, L):
 @settings(max_examples=20, deadline=1500)
 def test_fillet_weld_thicker_leg_higher_capacity(leg1, leg2, L):
     """Mayor leg -> mayor capacidad."""
-    assume(leg1 < leg2)
+    assume(leg2 > leg1 * (1.0 + 1e-9))  # dos legs a 1 ulp dan el mismo float
     from steeljoints.services.welds import (
         FilletWeldInput, design_fillet_weld,
     )

@@ -145,7 +145,11 @@ def design_wuf(inp: WUFInput) -> WUFResult:
 
     if not faltan_columna:
         # ------- Strong-Column Weak-Beam (AISC 341 sE3.4a) -------
-        M_pb = inp.beam_Zx_mm3 * inp.beam_Fy_MPa / 1e6  # kN*m
+        # ΣM*pb de AISC 341 §E3.4a: momento probable de la viga proyectado al eje del pilar,
+        # Mpr + Vpr·dc/2 (rótula en la cara del pilar en WUF-W). Hasta la versión 1.1 se usaba
+        # Zb·Fyb nominal, sin Cpr·Ry ni el momento adicional del cortante: el SCWB salía un 35-40 % alto.
+        M_pb = M_pr_kNm + V_pr_kN * (inp.col_d_mm / 2.0) / 1000.0  # kN*m
+        notes.append(f"SCWB: M*pb = Mpr + Vpr·dc/2 = {M_pb:.1f} kN.m")
         M_pc_bruto = inp.col_Zx_mm3 * inp.col_Fy_MPa / 1e6  # kN*m, Pu = 0
         axil_declarado = inp.Pu_col_kN is not None and inp.Py_col_kN is not None
         if axil_declarado:

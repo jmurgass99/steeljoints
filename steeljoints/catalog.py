@@ -20,11 +20,12 @@ from dataclasses import dataclass
 # Bolt grades — AISC Table J3.2 (Fnt, Fnv en MPa, threads NOT excluded "-N")
 # ---------------------------------------------------------------------------
 AISC_BOLT_GRADES: dict[str, dict] = {
-    "A307":  {"Fnt": 310.0, "Fnv_N": 188.0, "Fnv_X": 188.0, "Fub": 414.0},
+    # 1.2.0: A307 Fnv = 27 ksi = 186 MPa (antes 188) y A490-N = 68 ksi = 469 MPa (antes 457)
+    "A307":  {"Fnt": 310.0, "Fnv_N": 186.0, "Fnv_X": 186.0, "Fub": 414.0},
     "A325":  {"Fnt": 620.0, "Fnv_N": 372.0, "Fnv_X": 469.0, "Fub": 827.0},
-    "A490":  {"Fnt": 779.0, "Fnv_N": 457.0, "Fnv_X": 579.0, "Fub": 1034.0},
+    "A490":  {"Fnt": 779.0, "Fnv_N": 469.0, "Fnv_X": 579.0, "Fub": 1034.0},
     "F1852": {"Fnt": 620.0, "Fnv_N": 372.0, "Fnv_X": 469.0, "Fub": 827.0},
-    "F2280": {"Fnt": 779.0, "Fnv_N": 457.0, "Fnv_X": 579.0, "Fub": 1034.0},
+    "F2280": {"Fnt": 779.0, "Fnv_N": 469.0, "Fnv_X": 579.0, "Fub": 1034.0},
 }
 
 # ---------------------------------------------------------------------------
@@ -73,17 +74,43 @@ BOLT_SIZES_METRIC: dict[str, dict] = {
 # Standard hole sizes (AISC Table J3.3) [mm]
 # d_h = d + clearance
 # ---------------------------------------------------------------------------
-def standard_hole(d_mm: float) -> float:
-    """Diámetro estándar del agujero per AISC Table J3.3 [mm]."""
-    if d_mm <= 22.0:
-        return d_mm + 1.6   # +1/16"
-    elif d_mm <= 25.4:
-        return d_mm + 1.6
-    else:
-        return d_mm + 3.2   # +1/8" para Ø ≥ 1-1/8"
+# AISC 360-22 Tabla J3.3M, agujero estándar de tornillos métricos [mm]
+_AISC_METRIC_STANDARD_HOLE: dict[int, float] = {16: 18.0, 20: 22.0, 22: 24.0, 24: 27.0, 27: 30.0, 30: 33.0}
+
+
+def _is_metric_diameter(d_mm: float) -> bool:
+    """Un diámetro métrico es un entero de mm; los imperiales (12,7; 19,05; 25,4…) no lo son."""
+    return abs(d_mm - round(d_mm)) < 1e-6
+
+
+def standard_hole(d_mm: float, metric: bool | None = None) -> float:
+    """Diámetro del agujero estándar según AISC 360-22 Tablas J3.3 y J3.3M [mm].
+
+    Imperial (J3.3): d + 1/16" por debajo de 1" y d + 1/8" desde 1" (360-16 y 360-22; la 360-10
+    y RCSC 2014 daban d + 1/16" también para 1").
+    Métrico (J3.3M): M16 18, M20 22, M22 24, M24 27, M27 30, M30 33 y d + 3 desde M36. Por debajo
+    de M16 la tabla no da valor y se toma d + 2 (holgura de M16 a M22).
+    `metric=None` lo deduce del diámetro: un entero de mm es métrico.
+    Hasta la versión 1.1 se aplicaba la regla imperial a todo: 25,6 mm para M24 en vez de 27 y
+    27,0 mm para el tornillo de 1" en vez de 28,6.
+    """
+    if metric is None:
+        metric = _is_metric_diameter(d_mm)
+    if metric:
+        d = int(round(d_mm))
+        if d in _AISC_METRIC_STANDARD_HOLE:
+            return _AISC_METRIC_STANDARD_HOLE[d]
+        return d_mm + 3.0 if d_mm >= 36.0 else d_mm + 2.0
+    return d_mm + 1.5875 if d_mm < 25.4 - 1e-6 else d_mm + 3.175
+
 
 def oversized_hole(d_mm: float) -> float:
-    """Agujero sobredimensionado per AISC Table J3.3 [mm]."""
+    """Agujero sobredimensionado [mm]: d + 3/16" hasta 22 mm (3/4", M20, M22) y d + 1/4" por encima.
+
+    SIN CONTRASTAR con la columna de sobredimensionados de AISC 360-22 Tablas J3.3/J3.3M: la regla
+    no distingue tornillos métricos ni el tramo de 1/2" o de 1-1/8" en adelante. Comprueba el
+    valor en la tabla antes de usarlo en un plano.
+    """
     return d_mm + 4.8 if d_mm <= 22.0 else d_mm + 6.4
 
 

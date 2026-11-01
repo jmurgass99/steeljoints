@@ -28,6 +28,20 @@ BETA_W: dict[str, float] = {
 }
 
 
+def beta_w(steel_grade: str) -> float:
+    """βw de EN 1993-1-8:2005 Tabla 4.1 para «S355», «s355», «S355JR», «S355 J2»…
+
+    Un grado desconocido lanza ``ValueError``: βw no tiene valor por defecto normativo y suponer
+    el de S275 (0,85) para un S460 sobrevalora Fw,Rd un 17,6 %.
+    """
+    import re
+
+    m = re.match(r"\s*(S\d{3})", str(steel_grade or "").upper())
+    if m is None or m.group(1) not in BETA_W:
+        raise ValueError(f"Grado de acero desconocido para beta_w (EN 1993-1-8:2005 Tabla 4.1): {steel_grade!r}. Conocidos: {sorted(BETA_W)}")
+    return BETA_W[m.group(1)]
+
+
 # ---------------------------------------------------------------------------
 # §3.6.1 — Pernos individuales
 # ---------------------------------------------------------------------------
@@ -130,16 +144,16 @@ def fillet_weld_Rd_directional(a_mm: float, L_mm: float, fu_MPa: float,
         σ⊥                       ≤ 0.9·fu / γM2
     Devuelve el ratio de utilización.
     """
-    beta_w = BETA_W.get(steel_grade, 0.85)
-    fvw_d = fu_MPa / (beta_w * sqrt(3.0) * gamma_M2)
+    bw = beta_w(steel_grade)
+    fvw_d = fu_MPa / (bw * sqrt(3.0) * gamma_M2)
     von_mises = sqrt(sigma_perp**2 + 3.0 * (tau_perp**2 + tau_par**2))
-    limit_1 = fu_MPa / (beta_w * gamma_M2)
+    limit_1 = fu_MPa / (bw * gamma_M2)
     limit_2 = 0.9 * fu_MPa / gamma_M2
     util = max(von_mises / limit_1, abs(sigma_perp) / limit_2)
     # Capacidad como esfuerzo cortante simple en garganta:
     Fw_Rd = fvw_d * a_mm * L_mm
     return {"Fw_Rd_N": Fw_Rd, "utilization": util,
-            "fvw_d_MPa": fvw_d, "beta_w": beta_w,
+            "fvw_d_MPa": fvw_d, "beta_w": bw,
             "von_mises_MPa": von_mises,
             "limit_1_MPa": limit_1, "limit_2_MPa": limit_2}
 
@@ -152,8 +166,8 @@ def fillet_weld_Rd_simplified(a_mm: float, L_mm: float, fu_MPa: float,
       Fw,Rd = fvw,d · a       con   fvw,d = fu / (βw·√3·γM2)
     Devuelve Fw,Rd total en [N].
     """
-    beta_w = BETA_W.get(steel_grade, 0.85)
-    fvw_d = fu_MPa / (beta_w * sqrt(3.0) * gamma_M2)
+    bw = beta_w(steel_grade)
+    fvw_d = fu_MPa / (bw * sqrt(3.0) * gamma_M2)
     return fvw_d * a_mm * L_mm
 
 

@@ -54,7 +54,9 @@ class TestUtilizationAbsentCapacity:
     def test_healthy_path_is_a_failing_connection(self):
         """Caracterización: con capacidad presente esta conexión FALLA."""
         res = _group().utilization(Vu=_VU, Mu=_MU, phi_Rn_per_unit=_CAP)
-        assert res["utilization"] == pytest.approx(1.7806, abs=1e-4)
+        # v1.2: tensión en el extremo del cordón (420,7 N/mm², igual que WeldGroupElastic);
+        # la v1.1 evaluaba el centro del cordón y daba 1,7806.
+        assert res["utilization"] == pytest.approx(1.9372, abs=1e-4)
         assert res["is_ok"] is False
 
     @pytest.mark.parametrize("cap", [0.0, -1.0])
@@ -77,7 +79,7 @@ class TestUtilizationAbsentCapacity:
     def test_demand_is_still_reported_when_capacity_absent(self):
         """La demanda SÍ se computó: publicarla, es lo único que se sabe."""
         res = _group().utilization(Vu=_VU, Mu=_MU, phi_Rn_per_unit=0.0)
-        assert res["max_stress_N_mm2"] == pytest.approx(386.699, abs=1e-3)
+        assert res["max_stress_N_mm2"] == pytest.approx(420.716, abs=1e-3)
 
     def test_sibling_implementations_agree_on_absence(self):
         """welds.WeldGroup y weld_group.WeldGroupElastic, misma convención."""

@@ -246,7 +246,13 @@ class BoltGroupICR:
               R2 = M_bolt_about_A                          (momento respecto al punto de aplic = 0)
         Estas 2 condiciones son equivalentes a equilibrio puro.
         """
-        from scipy.optimize import fsolve
+        try:
+            from scipy.optimize import fsolve
+        except ImportError as exc:  # pragma: no cover - depende del entorno
+            from .exceptions import DependencyError
+            raise DependencyError(
+                "el centro instantáneo con carga oblicua o excéntrica necesita scipy: "
+                "pip install steeljoints[numeric]") from exc
         import numpy as np
 
         Px_hat, Py_hat, perp_x, perp_y, sign, ex_abs = self._load_geometry()

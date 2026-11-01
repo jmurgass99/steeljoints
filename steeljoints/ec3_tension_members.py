@@ -129,8 +129,14 @@ def bending_stress_at_anchorage(
     L_free: float,
     E: float,
     I: float,
+    theta_rad: float = 1.0,
 ) -> float:
     """Secondary bending stress at an anchorage due to angular misalignment.
+
+    The result is proportional to the misalignment angle ``theta_rad``. With the
+    default ``theta_rad = 1.0`` it is the stress PER RADIAN (until version 1.1
+    that was the only output and the docstring did not say so): pass the real
+    deviation, e.g. ``math.radians(0.5)``.
 
     The cable is modelled as an axially loaded beam-column with a unit
     transverse rotation imposed at the anchorage. The resulting bending
@@ -159,18 +165,23 @@ def bending_stress_at_anchorage(
     I : float
         Second moment of area of the cable cross-section (mm^4).
 
+    theta_rad : float, default 1.0
+        Angular deviation imposed at the anchorage (rad).
+
     Returns
     -------
     float
-        Secondary bending stress at the anchorage (MPa).
+        Secondary bending stress at the anchorage (MPa) for ``theta_rad``.
     """
     if F <= 0.0 or d <= 0.0 or E <= 0.0 or I <= 0.0 or L_free <= 0.0:
         raise ValueError("F, d, L_free, E, I must be positive")
+    if theta_rad < 0.0:
+        raise ValueError("theta_rad must be non-negative")
     # Characteristic length of the cable solution.
     Lc = (E * I / F) ** 0.5
     # Effective rotation reduction when L_free >> Lc (full beam-column limit).
     eta = 1.0 if L_free >= Lc else L_free / Lc
-    M = eta * (F * E * I) ** 0.5
+    M = theta_rad * eta * (F * E * I) ** 0.5
     sigma_b = M * (d / 2.0) / I
     return float(sigma_b)
 

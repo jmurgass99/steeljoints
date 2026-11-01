@@ -29,5 +29,7 @@ def design_clip_angle(inp: ClipAngleInput) -> ClipAngleResult:
     dcr = (inp.Vu_kN * 1e3) / Rn if Rn > 0 else 99
     return ClipAngleResult(
         Rn_kN=Rn / 1e3, DCR=dcr,
-        notes=[f"Rn = {Rn/1e3:.1f} kN ({inp.angle_type}), DCR = {dcr:.2f}"],
+        notes=[f"Rn = {Rn/1e3:.1f} kN ({inp.angle_type}), DCR = {dcr:.2f}",
+               "PROVISIONAL: solo fluencia por cortante bruto con Fy = 345 MPa y sin φ; "
+               "para pernos, aplastamiento, rotura y bloque usa steeljoints.ClipAngle"],
     )

@@ -4,13 +4,13 @@ build-backend = "setuptools.build_meta"
 
 [project]
 name = "steeljoints"
-version = "1.0.0"
-description = "Steel joint design: bolts and bolt groups, fillet and groove welds, end plates, shear tabs, clip angles, splices, base plates and anchors, panel zones, prying, block shear, RBS and WUF-W (AISC 360-22, AISC 358, EN 1993-1-8, NSR-10 F.2, ACI 318-25 ch. 17)."
+version = "1.2.0"
+description = "Steel connection design in Python: bolts and bolt groups (elastic and instantaneous center), fillet and groove welds and weld groups, shear tabs, clip angles, end plates, base plates, panel zones with doublers, prying, block shear, RBS and WUF-W, T-stubs (AISC 360-22, AISC 358, EN 1993-1-8, NSR-10)."
 readme = "README.md"
 requires-python = ">=3.11"
 license = { text = "MIT" }
 authors = [{ name = "Jesús Murgas" }]
-keywords = ["steel-connections", "joints", "aisc-360", "aisc-358", "en-1993-1-8", "bolts", "welds", "base-plate", "structural-engineering"]
+keywords = ["steel-connections", "steel-design", "joints", "aisc-360", "aisc-358", "en-1993-1-8", "eurocode-3", "nsr-10", "bolts", "bolt-group", "instantaneous-center", "welds", "weld-group", "shear-tab", "end-plate", "base-plate", "panel-zone", "block-shear", "structural-engineering", "loadpath"]
 classifiers = [
     "Development Status :: 4 - Beta",
     "Intended Audience :: Science/Research",
@@ -21,7 +21,7 @@ classifiers = [
     "Programming Language :: Python :: 3.13",
     "Topic :: Scientific/Engineering",
 ]
-dependencies = ["numpy>=1.24"]
+dependencies = ["numpy>=1.24", "pydantic>=2.0"]
 
 [project.optional-dependencies]
 api = ["fastapi>=0.100", "uvicorn[standard]>=0.20", "httpx>=0.25", "pydantic>=2.0"]
@@ -46,4 +46,5 @@ markers = [
     "api: endpoints REST",
     "property: property-based con hypothesis",
     "safety_critical: validados contra valores publicados",
+    "characterization: fijan el comportamiento actual de un módulo, no un valor normativo",
 ]

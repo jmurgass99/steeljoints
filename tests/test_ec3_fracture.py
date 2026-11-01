@@ -51,22 +51,22 @@ def test_t_max_decreases_with_higher_stress():
     assert t_high < t_low
 
 
-def test_z_property_z25_when_z_demand_in_range():
-    # Z_Ed in (10, 20] -> Z25.
+def test_z_property_z15_when_z_demand_in_range():
+    # EN 1993-1-10 Tabla 3.2: Z_Ed in (10, 20] -> Z15 (v1.1 decía Z25).
     cls = Z_property_required(z_Ed=0.0, conditions={"Za": 3, "Zb": 5, "Zc": 8})
-    assert cls == "Z25"
+    assert cls == "Z15"
 
 
-def test_z_property_required_when_thick_and_z_loaded():
-    # Through-thickness tensile demand + thickness > 15 mm -> Z-quality is
-    # required. The combined Z_Ed is well above 0 -> "Z15" at minimum.
-    cls = Z_property_required(z_Ed=8.0)
-    assert cls in {"Z15", "Z25", "Z35"}
+def test_z_property_not_required_up_to_10():
+    # Z_Ed <= 10 -> sin requisito de calidad Z.
+    assert Z_property_required(z_Ed=8.0) == "none"
+    assert Z_property_required(z_Ed=10.0) == "none"
 
 
-def test_z_property_z35_for_high_demand():
-    cls = Z_property_required(z_Ed=25.0)
-    assert cls == "Z35"
+def test_z_property_z25_and_z35_bands():
+    assert Z_property_required(z_Ed=25.0) == "Z25"
+    assert Z_property_required(z_Ed=30.0) == "Z25"
+    assert Z_property_required(z_Ed=35.0) == "Z35"
 
 
 def test_t_max_invalid_inputs():

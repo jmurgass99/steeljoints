@@ -32,6 +32,9 @@ class PryingInput:
     d_mm: float          # diametro del perno
     Fy_MPa: float
     d_hole_mm: float | None = None  # por defecto d + 2 mm
+    #: Resistencia a tracción del ala/placa. El Manual AISC usa Fu en t_c desde la 13.ª edición
+    #: (correlaciona mejor con los ensayos); si no se da, se usa Fy, que es conservador.
+    Fu_MPa: float | None = None
 
 
 @dataclass(frozen=True)
@@ -58,7 +61,10 @@ def prying_capacity(inp: PryingInput) -> PryingResult:
 
     B_N = inp.B_kN * 1.0e3
     # Espesor para el cual no hay palanca (el perno alcanza B con la placa al limite).
-    t_c = math.sqrt(4.0 * B_N * b_prime / (_PHI_B * inp.p_mm * inp.Fy_MPa))
+    F_ref = inp.Fu_MPa if inp.Fu_MPa is not None else inp.Fy_MPa
+    if F_ref <= 0:
+        raise GeometryError("Fu_MPa debe ser > 0")
+    t_c = math.sqrt(4.0 * B_N * b_prime / (_PHI_B * inp.p_mm * F_ref))
 
     # alpha' (AISC Eq. 9-...), acotado a [0, 1].
     if delta <= 0:

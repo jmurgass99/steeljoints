@@ -128,8 +128,10 @@ class ShearTab:
         # Shear paths
         Agv = (self.plate_height - self.edge_dist_v) * tp
         Anv = Agv - (self.n_bolts - 0.5) * dh * tp
-        # Tension path
-        Ant = (self.plate_width - self.edge_dist_h - dh / 2) * tp
+        # Tension path: del eje de pernos al borde libre (Leh = edge_dist_h), AISC Manual Parte 10.
+        # Hasta la v1.1 se medía hacia el borde soldado (plate_width − edge_dist_h): con chapas anchas
+        # sobrevaloraba Ant.
+        Ant = (self.edge_dist_h - dh / 2) * tp
         result = block_shear_strength(
             Agv, Anv, Ant,
             self.Fy_plate, self.Fu_plate,

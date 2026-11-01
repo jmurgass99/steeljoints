@@ -214,9 +214,13 @@ def Z_property_required(
 
     Mapping to Z-quality of EN 10164 (Table 3.2 of EN 1993-1-10):
 
-        Z_Ed <= 10  -> "Z15"
-        10 < Z_Ed <= 20 -> "Z25"
-        20 < Z_Ed       -> "Z35"
+        Z_Ed <= 10      -> "none" (no Z-quality required)
+        10 < Z_Ed <= 20 -> "Z15"
+        20 < Z_Ed <= 30 -> "Z25"
+        30 < Z_Ed       -> "Z35"
+
+    Until version 1.1 the mapping was shifted one class up (Z15 from any
+    positive Z_Ed, Z35 from 20): conservative but not the table.
 
     Parameters
     ----------
@@ -237,11 +241,11 @@ def Z_property_required(
         for k in ("Za", "Zb", "Zc", "Zd", "Ze"):
             Z += float(conditions.get(k, 0.0))
 
-    if Z <= 0.0:
-        return "none"
     if Z <= 10.0:
-        return "Z15"
+        return "none"
     if Z <= 20.0:
+        return "Z15"
+    if Z <= 30.0:
         return "Z25"
     return "Z35"
 

@@ -8,8 +8,8 @@ Modelos:
     EN 1993-1-8 §3.10.2 (idéntico SG):
        Veff,1,Rd = Fu·Ant/γM2 + (1/√3)·Fy·Anv/γM0  (simétrica)
 
-    AS 4100 §9.2:
-       R_d = 0.75·(0.6·Fu·Anv + Fu·Ant)            (φ=0.75)
+    AS 4100 §9.1.9 (enmienda de 2012, misma forma que AISC):
+       φ·R_bs = 0.75·min(0.6·fu·Anv + kbs·fu·Ant ; 0.6·fy·Agv + kbs·fu·Ant),  kbs = Ubs
 
     NSR-10 §F.2 (idéntico AISC con notación):
        φ·R_n con φ=0.75
@@ -71,8 +71,10 @@ def _en1993_block(inp: BlockShearInput) -> tuple[float, float, str]:
 
 
 def _as4100_block(inp: BlockShearInput) -> tuple[float, str]:
-    Rn = (0.6 * inp.Fu_MPa * inp.Anv_mm2 + inp.Fu_MPa * inp.Ant_mm2) / 1000.0
-    return Rn, "fracture"
+    """AS 4100 §9.1.9 (enmienda de 2012): misma forma que AISC 360 §J4.3, con kbs = Ubs y el tope
+    de fluencia por cortante 0,6·fy·Agv. Hasta la versión 1.1 faltaban el tope y kbs, del lado inseguro
+    cuando gobierna la fluencia o la tracción no es uniforme."""
+    return _aisc_block(inp)
 
 
 def block_shear(inp: BlockShearInput, code: str = "US") -> BlockShearResult:

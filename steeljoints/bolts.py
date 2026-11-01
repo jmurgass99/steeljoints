@@ -15,13 +15,17 @@ from math import pi, sqrt
 # ---------------------------------------------------------------------------
 # Bolt material data
 # ---------------------------------------------------------------------------
+# AISC 360-22 Tabla J3.2 en ksi convertidos exactamente (1 ksi = 6.894757 MPa):
+#   A307: Fnt 45, Fnv 27 · Grupo 120 (A325, F1852): Fnt 90, Fnv-N 54, Fnv-X 68
+#   Grupo 150 (A490, F2280): Fnt 113, Fnv-N 68, Fnv-X 84
+# "Fnv" (sin sufijo) es el valor -N, por compatibilidad. Hasta la versión 1.1, A307 llevaba 24 ksi
+# (valor antiguo) y A490-N 66 ksi.
 _AISC_BOLT_DATA: dict[str, dict] = {
-    # Grade: Fnt (tension MPa), Fnv_bearing (shear MPa), Fnv_slip (ksi→MPa)
-    "A307": {"Fnt": 310.3, "Fnv": 165.5, "Fu": 413.7},
-    "A325": {"Fnt": 620.5, "Fnv": 372.3, "Fu": 827.4},  # N (bearing)
-    "A490": {"Fnt": 779.2, "Fnv": 455.1, "Fu": 1034.3},
-    "F1852": {"Fnt": 620.5, "Fnv": 372.3, "Fu": 827.4},  # equiv A325
-    "F2280": {"Fnt": 779.2, "Fnv": 455.1, "Fu": 1034.3},  # equiv A490
+    "A307": {"Fnt": 310.3, "Fnv": 186.2, "Fnv_X": 186.2, "Fu": 413.7},
+    "A325": {"Fnt": 620.5, "Fnv": 372.3, "Fnv_X": 468.8, "Fu": 827.4},
+    "A490": {"Fnt": 779.1, "Fnv": 468.8, "Fnv_X": 579.2, "Fu": 1034.3},
+    "F1852": {"Fnt": 620.5, "Fnv": 372.3, "Fnv_X": 468.8, "Fu": 827.4},  # equiv A325
+    "F2280": {"Fnt": 779.1, "Fnv": 468.8, "Fnv_X": 579.2, "Fu": 1034.3},  # equiv A490
 }
 
 _EC3_BOLT_DATA: dict[str, dict] = {
@@ -51,7 +55,37 @@ _BOLT_AREA_CM2: dict[float, float] = {
     31.75: 7.917,  # 1-1/4"
 }
 
-SHEAR_AREA_FACTOR = 0.75  # Rn based on 0.75*Ab when threads in shear plane
+SHEAR_AREA_FACTOR = 0.75  # OBSOLETO desde 1.2.0: ya no interviene en ninguna resistencia
+
+# Paso grueso ISO 261 [mm] para el área resistente a tracción As = π/4·(d − 0.9382·P)² (ISO 898-1)
+_ISO_COARSE_PITCH: dict[float, float] = {
+    12.0: 1.75, 14.0: 2.0, 16.0: 2.0, 18.0: 2.5, 20.0: 2.5, 22.0: 2.5,
+    24.0: 3.0, 27.0: 3.0, 30.0: 3.5, 33.0: 3.5, 36.0: 4.0,
+}
+
+
+def bolt_tensile_stress_area(d_mm: float) -> float:
+    """Área resistente a tracción As [mm²] (ISO 898-1 / ASME B1.1).
+
+    Usa el catálogo (métrico o imperial) cuando el diámetro coincide a menos de 0,5 mm; si no,
+    As = π/4·(d − 0.9382·P)² con el paso grueso ISO más próximo.
+    """
+    from .catalog import BOLT_SIZES_IMPERIAL, BOLT_SIZES_METRIC
+    for table in (BOLT_SIZES_METRIC, BOLT_SIZES_IMPERIAL):
+        for data in table.values():
+            if abs(data["d_mm"] - d_mm) < 0.5:
+                return float(data["As_mm2"])
+    pitch = _ISO_COARSE_PITCH[min(_ISO_COARSE_PITCH, key=lambda k: abs(k - d_mm))]
+    return pi / 4.0 * (d_mm - 0.9382 * pitch) ** 2
+
+
+def ec3_normal_hole_clearance(d_mm: float) -> float:
+    """Holgura nominal de agujero normal [mm] (EN 1090-2, Tabla 11): M12–M14 1 mm, M16–M24 2 mm, ≥ M27 3 mm."""
+    if d_mm <= 14.0:
+        return 1.0
+    if d_mm <= 24.0:
+        return 2.0
+    return 3.0
 
 
 def bolt_gross_area(d_mm: float) -> float:
@@ -96,16 +130,22 @@ class Bolt:
                              f"Valid: {list(_AISC_BOLT_DATA)}")
         return _AISC_BOLT_DATA[self.grade]
 
+    def _aisc_Fnv(self) -> float:
+        """Fnv de AISC 360-22 Tabla J3.2: «-N» (rosca en el plano de corte) o «-X» (excluida)."""
+        g = self._aisc_data  # valida el grado
+        return g["Fnv"] if self.threads_in_shear_plane else g["Fnv_X"]
+
     def aisc_shear_strength(self, phi: float = 0.75) -> float:
         """
         φRn (shear) per AISC §J3.6 [N].
-        Rn = Fnv · Ab  (if threads excluded from shear plane)
-        Rn = 0.75 · Fnv · Ab  (if threads in shear plane)
+        Rn = Fnv · Ab · n_planos, con Ab el área NOMINAL (bruta) y Fnv de la Tabla J3.2:
+        «-N» si la rosca está en el plano de corte, «-X» si está excluida.
+
+        La tabla ya incorpora la reducción por rosca (A325-N 372 MPa frente a A325-X 469 MPa).
+        Hasta la versión 1.1 se usaba Fnv «-N» y ADEMÁS 0,75·Ab: el cortante de un perno
+        A325-N de 3/4" salía 59,7 kN en vez de 79,5 kN, y con la rosca excluida no subía a «-X».
         """
-        Fnv = self._aisc_data["Fnv"]
-        Ab_effective = self.Ab * SHEAR_AREA_FACTOR if self.threads_in_shear_plane \
-                       else self.Ab
-        Rn = Fnv * Ab_effective * self.n_shear_planes
+        Rn = self._aisc_Fnv() * self.Ab * self.n_shear_planes
         return phi * Rn  # [N]
 
     def aisc_tension_strength(self, phi: float = 0.75) -> float:
@@ -140,7 +180,7 @@ class Bolt:
         Vuv : float  required shear strength per bolt [N]
         """
         data = self._aisc_data
-        Fnt, Fnv = data["Fnt"], data["Fnv"]
+        Fnt, Fnv = data["Fnt"], self._aisc_Fnv()
         frv = Vuv / self.Ab  # shear stress on bolt
         Fnt_prime = max(0.0, min(1.3 * Fnt - (Fnt / (phi * Fnv)) * frv, Fnt))
         return phi * Fnt_prime * self.Ab
@@ -160,24 +200,32 @@ class Bolt:
         Fv,Rd (shear) per EC3-1-8 §3.6.1 Table 3.4 [N].
         Fv,Rd = 0.6 · fub · A / γM2  (grades 4.6, 5.6, 8.8)
         Fv,Rd = 0.5 · fub · A / γM2  (grades 6.8, 10.9)
-        Delega en la primitiva canónica bolt_shear_Rd.
+        A = As (área resistente a tracción) si la rosca está en el plano de corte; A = área bruta si no.
+        Delega en la primitiva canónica bolt_shear_Rd. Hasta la versión 1.1 se tomaba 0,75·Ab en lugar
+        de As (M20 8.8: 90,5 kN en vez de 94,1 kN).
         """
         from .codes.ec3_1_8 import bolt_shear_Rd
         fub = self._ec3_data["fub"]
         alpha_v = 0.5 if self.grade in ("6.8", "10.9") else 0.6
-        As = self.Ab * SHEAR_AREA_FACTOR if self.threads_in_shear_plane else self.Ab
-        return bolt_shear_Rd(A_mm2=As, fub_MPa=fub, alpha_v=alpha_v, gamma_M2=gamma_M2) * self.n_shear_planes
+        A = bolt_tensile_stress_area(self.diameter) if self.threads_in_shear_plane else self.Ab
+        return bolt_shear_Rd(A_mm2=A, fub_MPa=fub, alpha_v=alpha_v, gamma_M2=gamma_M2) * self.n_shear_planes
 
     def ec3_tension_strength(self, gamma_M2: float = 1.25) -> float:
-        """Ft,Rd (tension) per EC3-1-8 §3.6.1 [N]."""
+        """Ft,Rd = k2 · fub · As / γM2 (EC3-1-8 §3.6.1 Tabla 3.4, k2 = 0,9) [N].
+
+        Con el área resistente As, no con la bruta: hasta la versión 1.1 se usaba Ab y la
+        resistencia de un M20 salía un 28 % alta (181 kN en vez de 141 kN para 8.8).
+        """
+        from .codes.ec3_1_8 import bolt_tension_Rd
         fub = self._ec3_data["fub"]
-        return 0.9 * fub * self.Ab / gamma_M2
+        return bolt_tension_Rd(As_mm2=bolt_tensile_stress_area(self.diameter), fub_MPa=fub, gamma_M2=gamma_M2)
 
     def ec3_bearing_strength(self, t: float, fu_plate: float,
                               e1: float, p1: float,
                               e2: float, p2: float,
                               direction: str = "parallel",
-                              gamma_M2: float = 1.25) -> float:
+                              gamma_M2: float = 1.25,
+                              d0: float | None = None) -> float:
         """
         Fb,Rd (bearing) per EC3-1-8 §3.6.1 Table 3.4 [N].
 
@@ -187,13 +235,20 @@ class Bolt:
         fu_plate : float  plate ultimate strength [MPa]
         e1, p1 : float  end/pitch distance in load direction [mm]
         e2, p2 : float  end/pitch distance perpendicular [mm]
+        d0 : float  diámetro del agujero [mm]; por defecto d + holgura normal de EN 1090-2 Tabla 11.
+
+        Los cocientes de posición (αd, k1) van con d0 y el área de aplastamiento con d (Tabla 3.4).
+        Se toma el perno más desfavorable de la fila: αd = mín(e1/3d0, p1/3d0 − 1/4) y
+        k1 = mín(2,8·e2/d0 − 1,7, 1,4·p2/d0 − 1,7, 2,5), una envolvente conservadora de los casos de
+        borde e interior. Hasta la versión 1.1 los cocientes usaban d en vez de d0 (+10 % en M20).
         """
         d = self.diameter
+        d0 = d + ec3_normal_hole_clearance(d) if d0 is None else d0
         fub = self._ec3_data["fub"]
         # alpha_d in load direction
-        alpha_d = min(e1 / (3 * d), p1 / (3 * d) - 0.25, fub / fu_plate, 1.0)
+        alpha_d = min(e1 / (3 * d0), p1 / (3 * d0) - 0.25, fub / fu_plate, 1.0)
         # k1 perpendicular
-        k1 = min(2.8 * e2 / d - 1.7, 1.4 * p2 / d - 1.7, 2.5)
+        k1 = min(2.8 * e2 / d0 - 1.7, 1.4 * p2 / d0 - 1.7, 2.5)
         Fb_Rd = k1 * alpha_d * fu_plate * d * t / gamma_M2
         return Fb_Rd
 

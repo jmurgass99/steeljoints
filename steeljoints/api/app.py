@@ -11,6 +11,7 @@ except ImportError as exc:
     ) from exc
 
 from .._brand import NAME as _BRAND_NAME
+from .. import __version__ as _VERSION
 from ..services import (
     bolts, welds, end_plate, base_plate,
     panel_zone, splice, clip_angle, rbs, wuf,
@@ -210,7 +211,7 @@ def api_single_bolt(payload: SingleBoltPayload):
         raise HTTPException(400, str(exc))
 
 
-@router.post("/api/connections/bolts/group", summary="Capacidad de grupo de tornillos bajo cortante excéntrico (método centro instantáneo)")
+@router.post("/api/connections/bolts/group", summary="Grupo de tornillos en una línea vertical con cortante y momento (método elástico, AISC Manual Parte 7)")
 def api_bolt_group(payload: BoltGroupPayload):
     try:
         res = bolts.design_bolt_group(bolts.BoltGroupInput(**payload.model_dump()))
@@ -220,7 +221,7 @@ def api_bolt_group(payload: BoltGroupPayload):
         raise HTTPException(400, str(exc))
 
 
-@router.post("/api/connections/welds/fillet", summary="Resistencia de cordones de soldadura en ángulo según método direccional EN 1993-1-8 §4.5.3")
+@router.post("/api/connections/welds/fillet", summary="Soldadura en ángulo: resistencia direccional AISC 360-22 §J2.4 (φ = 0,75)")
 def api_fillet_weld(payload: FilletWeldPayload):
     try:
         res = welds.design_fillet_weld(welds.FilletWeldInput(**payload.model_dump()))
@@ -232,7 +233,7 @@ def api_fillet_weld(payload: FilletWeldPayload):
         raise HTTPException(400, str(exc))
 
 
-@router.post("/api/connections/end_plate", summary="Unión viga-pilar con chapa frontal atornillada (End Plate) según EN 1993-1-8 / SCI P398")
+@router.post("/api/connections/end_plate", summary="Chapa frontal extendida: flexión de la chapa por líneas de rotura (AISC 358 §6 / Design Guide 4), delega en EndPlate")
 def api_end_plate(payload: EndPlatePayload):
     try:
         res = end_plate.design_end_plate(end_plate.EndPlateInput(**payload.model_dump()))
@@ -252,7 +253,7 @@ def api_end_plate_from_member_forces(payload: EndPlateMemberForcesPayload):
         raise HTTPException(400, str(exc))
 
 
-@router.post("/api/connections/base_plate", summary="Placa base de columna con pernos de anclaje según AISC DG1 / EN 1993-1-8")
+@router.post("/api/connections/base_plate", summary="Placa base de columna: aplastamiento y espesor por los voladizos m, n y λn' (AISC Design Guide 1), delega en BasePlate")
 def api_base_plate(payload: BasePlatePayload):
     try:
         res = base_plate.design_base_plate(base_plate.BasePlateInput(**payload.model_dump()))
@@ -274,7 +275,7 @@ def api_panel_zone(payload: PanelZonePayload):
         raise HTTPException(400, str(exc))
 
 
-@router.post("/api/connections/splice", summary="Empalme de vigas y columnas mediante cubrejuntas atornillados según EN 1993-1-8")
+@router.post("/api/connections/splice", summary="Empalme con cubrejuntas de ala: comprobación simplificada con brazo fijo de 0,5 m (servicio provisional)")
 def api_splice(payload: SplicePayload):
     try:
         res = splice.design_splice(splice.SpliceInput(**payload.model_dump()))
@@ -283,7 +284,7 @@ def api_splice(payload: SplicePayload):
         raise HTTPException(400, str(exc))
 
 
-@router.post("/api/connections/clip_angle", summary="Unión simple a cortante mediante doble angular (Clip Angle / Fin Plate) según AISC 360")
+@router.post("/api/connections/clip_angle", summary="Angulares a cortante: solo fluencia por cortante bruto con Fy = 345 MPa (servicio provisional; ClipAngle hace las ocho comprobaciones)")
 def api_clip_angle(payload: ClipAnglePayload):
     try:
         res = clip_angle.design_clip_angle(clip_angle.ClipAngleInput(**payload.model_dump()))
@@ -330,7 +331,7 @@ def create_router() -> APIRouter:
 # ---------------------------------------------------------------------------
 # App standalone
 # ---------------------------------------------------------------------------
-app = FastAPI(title=f"{_BRAND_NAME} API", version="0.1.0")
+app = FastAPI(title=f"{_BRAND_NAME} API", version=_VERSION)
 app.add_middleware(
     CORSMiddleware, allow_origins=["*"],
     allow_credentials=True, allow_methods=["*"], allow_headers=["*"],

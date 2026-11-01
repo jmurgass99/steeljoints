@@ -108,7 +108,13 @@ def Yp_4E_unstiffened(bp: float, g: float, pfo: float, pfi: float,
     """
     Parámetro Yp para 4-bolt extended unstiffened (4E), AISC 358 Tabla 6.2.
     bp = ancho placa; g = gage horizontal; pfo,pfi = dist. de las filas
-    al ala; h0,h1 = dist. al centroide del ala traccionada; s = √(bp·g)/2.
+    al ala; h0,h1 = dist. de las filas al eje del ala COMPRIMIDA; s = √(bp·g)/2.
+
+    SIN CONTRASTAR (1.2.0): la expresión lleva los términos h0/(2s) y h0·(pfo + s) que la forma
+    de 4E que suele reproducirse no tiene, y que se parecen a la del caso rigidizado (4ES). No se
+    ha podido verificar contra la Tabla 6.2 de AISC 358, así que no se cambia; con las cotas por
+    defecto de ``EndPlate`` da un Yp un 30–40 % mayor que la forma reducida
+    bp/2·[h1(1/pfi + 1/s) + h0/pfo − 1/2] + 2/g·h1(pfi + s). Compruébalo antes de usar φMn.
     """
     if s <= 0:
         s = sqrt(bp * g) / 2.0

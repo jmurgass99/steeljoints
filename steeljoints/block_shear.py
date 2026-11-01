@@ -37,8 +37,10 @@ def block_shear_strength(Agv: float, Anv: float, Ant: float,
           or 0.6·Fy·Agv + Ubs·Fu·Ant  (yielding governs shear path)
         Design: φRn = 0.75·Rn
 
-    EC3-1-8 §3.10.2:
-        Veff = (1/√3)·fu·Ant/γM2 + (1/√3)·fy·Agv/γM0
+    EC3-1-8 §3.10.2 (Ec. 3.9, grupo simétrico):
+        Veff,1,Rd = fu·Ant/γM2 + (1/√3)·fy·Anv/γM0
+    Con el área NETA a cortante: hasta la versión 1.1 se usaba Agv y el resultado no coincidía con
+    ``block_shear_multi`` (que ya usaba Anv).
     """
     code = code.upper()
 
@@ -58,7 +60,7 @@ def block_shear_strength(Agv: float, Anv: float, Ant: float,
         }
     else:  # EC3
         import math
-        Veff = (Ant * Fu / gamma_M2) + (Agv * Fy) / (math.sqrt(3) * gamma_M0)
+        Veff = (Ant * Fu / gamma_M2) + (Anv * Fy) / (math.sqrt(3) * gamma_M0)
         return {
             "code": "EC3-1-8 §3.10.2",
             "Veff_N": round(Veff, 1),

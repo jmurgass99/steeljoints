@@ -52,7 +52,7 @@ __all__ = [
     # Brand
     "NAME", "SLUG", "EXE", "APPDATA_DIR", "ORG", "REPO", "URL", "TAGLINE",
 ]
-__version__ = "1.1.0"
+__version__ = "1.2.0"
 
 # Exception hierarchy (Mejora B)
 from .exceptions import (
