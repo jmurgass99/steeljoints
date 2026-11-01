@@ -1,6 +1,6 @@
 """Jerarquía de excepciones tipadas de SteelJoints.
 
-Permite al caller (REST API, AI Copilot, bridge FastSAP) distinguir
+Permite al caller (REST API, bridge FastSAP) distinguir
 entre:
     - Geometría inválida (GeometryError)
     - Norma fuera de aplicabilidad (CodeError)

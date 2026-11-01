@@ -43,7 +43,7 @@ tests/test_<topic>.py
 
 ### 5. Service layer
 - `services/` separa la lógica de negocio de la presentación (GUI/REST/CLI).
-- Reusable desde FastAPI, Tk desktop, Streamlit, CLI, AI Copilot.
+- Reusable desde FastAPI, Tk desktop, Streamlit y CLI.
 
 ## Ejemplo mínimo
 
