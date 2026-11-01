@@ -1,0 +1,17 @@
+S275 (fy 275 / fu 430 MPa): Agv = 1800, Anv = 1250, Ant = 290 mm²
+
+  norma                         Ubs  Rn [kN]  Rd [kN]  factor      modo
+  AISC 360-22 §J4.3             1.0    421.7    316.3   0.750     yield
+  AISC 360-22 §J4.3             0.5    359.4    269.5   0.750     yield
+  EN 1993-1-8 §3.10.2 (Ec. 3.9)  1.0    323.2    298.2   0.923  fracture
+  AS 4100 §9.1.9                1.0    421.7    316.3   0.750     yield
+  AS 4100 §9.1.9                0.5    359.4    269.5   0.750     yield
+  NSR-10 F.2 (vía AISC)         1.0    421.7    316.3   0.750     yield
+  NSR-10 F.2 (vía AISC)         0.5    359.4    269.5   0.750     yield
+
+Contraste: block_shear_strength AISC φRn = 316.3 kN (shear_yielding), EC3 Veff = 298.2 kN; NSR-10 φRn = 316.3 kN (shear_yield).
+  A mano AISC: mín(0,6·430·1250, 0,6·275·1800) + 430·290 = 421.7 kN → ×0,75 = 316.3 kN
+  A mano EC3: 430·290/1,25 + 275·1250/(√3·1,0) = 298.2 kN
+
+EC3 con la Ec. 3.9 queda un -6 % respecto a AISC; AS 4100 y NSR-10 coinciden con AISC. Ubs = 0,5 (tracción no uniforme) baja AISC a 269.5 kN.
+La Ec. 3.9 supone un grupo simétrico con carga centrada. Un bloque en L como este, con una sola fila junto al borde, se parece más al caso de la Ec. 3.10 (0,5·fu·Ant/γM2 + fy·Anv/(√3·γM0) = 248.3 kN), que el módulo no implementa: calcúlala aparte si tu unión es de ese tipo.

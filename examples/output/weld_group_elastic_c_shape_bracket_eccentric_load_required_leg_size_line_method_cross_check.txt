@@ -1,0 +1,13 @@
+Grupo en C: Lw = 400 mm, centroide x̄ = 25.0 mm, Ip = 3.083e+06 mm³ (línea de espesor unidad)
+  Carga 150 kN hacia abajo a x = 300 mm → excentricidad 275.0 mm, M = 41.25 kN·m
+  Punto crítico (100, 100) mm, f_max = 1920.9 N/mm
+  A mano en (100, ±100): directo 375.0, torsión (1337.8; 1003.4) → f = √(1337.8² + (375.0 + 1003.4)²) = 1920.9 N/mm
+
+Tamaño de cordón con E70, φ = 0,75 (sin aumento direccional):
+  w_req = f_max/(0,75·0,60·FEXX/√2) = 12.5 mm → cordón comercial de 14 mm
+  w =    8 mm: φRn = 1228 N/mm → utilización 1.564 NO cumple
+  w =   10 mm: φRn = 1536 N/mm → utilización 1.251 NO cumple
+  w =   12 mm: φRn = 1843 N/mm → utilización 1.042 NO cumple
+
+welds.WeldGroup con los mismos cordones de 8 mm: 339.6 N/mm² en la garganta = 1920.9 N/mm de cordón; utilización 1.564 (CALCULADO_FALLA).
+Las dos implementaciones dan la misma tensión. El método elástico ignora la ductilidad y el aumento direccional; el centro instantáneo da más capacidad para la misma ménsula.

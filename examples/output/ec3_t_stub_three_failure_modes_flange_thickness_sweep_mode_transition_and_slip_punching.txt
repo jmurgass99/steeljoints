@@ -1,0 +1,23 @@
+T-stub de leff = 160 mm, m = 35, n = 43.75 mm (≤ 1,25·m), S275; 2 × M20 10.9: ΣFt,Rd = 2·0,9·1000·245/1,25 = 352.8 kN
+
+    tp  F1 [kN]  F2 [kN]  F3 [kN]   FT,Rd    modo
+     8     80.5    213.9    352.8    80.5  Modo 1
+    10    125.7    223.9    352.8   125.7  Modo 1
+    12    181.0    236.2    352.8   181.0  Modo 1
+    15    282.9    258.9    352.8   258.9  Modo 2
+    18    407.3    286.5    352.8   286.5  Modo 2
+    20    502.9    307.7    352.8   307.7  Modo 2
+    25    785.7    370.6    352.8   352.8  Modo 3
+    30   1131.4    447.4    352.8   352.8  Modo 3
+
+Fronteras: modo 1 → 2 con tp = 14.2 mm; modo 2 → 3 con tp = 23.7 mm.
+A mano con tp = 15: Mpl = 0,25·160·15²·275 = 2.475 kN·m; F2 = (2·Mpl + 43.75·ΣFt)/(35 + 43.75) = 258.9 kN (función 258.9)
+
+Los mismos tornillos pretensados (Fp,C = 0,7·fub·As):
+  superficie clase A (μ = 0.5): Fs,Rd =  68.6 kN por tornillo y plano
+  superficie clase B (μ = 0.4): Fs,Rd =  54.9 kN por tornillo y plano
+  superficie clase C (μ = 0.3): Fs,Rd =  41.2 kN por tornillo y plano
+  superficie clase D (μ = 0.2): Fs,Rd =  27.4 kN por tornillo y plano
+  Punzonamiento de una chapa de 12 mm (fu 430 MPa) bajo cabeza de M20 (dm ≈ 32,4 mm): Bp,Rd = 252.1 kN frente a Ft,Rd = 176.4 kN
+
+Con alas finas manda el modo 1 (plastificación completa del ala); al engrosar el ala la rotura pasa a los tornillos con palanca (modo 2) y, con ala gruesa, a los tornillos solos (modo 3). La clave del modo 1 se llama F1_Nmm pero su valor está en N.

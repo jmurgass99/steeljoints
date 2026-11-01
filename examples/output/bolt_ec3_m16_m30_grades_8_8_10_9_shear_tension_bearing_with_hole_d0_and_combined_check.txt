@@ -1,0 +1,28 @@
+Resistencias de cálculo por tornillo [kN], un plano de corte, γM2 = 1,25:
+  tornillo     As   d0 Fv,Rd rosca Fv,Rd vástago  Ft,Rd
+  M16 8.8     157   18        60.3          77.2   90.4
+  M16 10.9    157   18        62.8          80.4  113.0
+  M20 8.8     245   22        94.1         120.7  141.1
+  M20 10.9    245   22        98.0         125.7  176.4
+  M24 8.8     353   26       135.6         173.7  203.3
+  M24 10.9    353   26       141.2         181.0  254.2
+  M30 8.8     561   33       215.4         271.4  323.1
+  M30 10.9    561   33       224.4         282.8  403.9
+
+A mano, M20 8.8: Fv,Rd = 0,6·800·245/1,25 = 94.08 kN; Ft,Rd = 0,9·800·245/1,25 = 141.12 kN (tablas habituales: 94,1 y 141,1 kN)
+
+Aplastamiento de un M20 8.8 en chapa S275 (fu = 430 MPa) de 12 mm, d0 = 22 mm:
+    e1   p1   e2   p2     αd     k1 Fb,Rd [kN] con d en vez de d0
+    30   55   30   55  0.455  1.800       67.5               88.8
+    40   70   35   70  0.606  2.500      125.1              137.6
+    50   80   40   80  0.758  2.500      156.4              172.0
+    66   90   50   90  1.000  2.500      206.4              206.4
+  Con e1 = 3·d0 = 66 mm y p2 ≥ 3·d0 se alcanzan αd = 1 y k1 = 2,5: Fb,Rd = 2,5·fu·d·t/γM2 = 206.4 kN.
+
+Interacción cortante-tracción (Tabla 3.4): Fv,Ed/Fv,Rd + Ft,Ed/(1,4·Ft,Rd) ≤ 1
+  Fv,Ed =   40 kN, Ft,Ed =   60 kN → 0.729 cumple
+  Fv,Ed =   60 kN, Ft,Ed =   80 kN → 1.043 NO cumple
+  Fv,Ed =   70 kN, Ft,Ed =  100 kN → 1.250 NO cumple
+  Fv,Ed =   90 kN, Ft,Ed =   30 kN → 1.108 NO cumple
+
+El aplastamiento toma el tornillo más desfavorable de la unión (mín. de los casos de borde e interior para αd y k1), una envolvente conservadora; para tornillos concretos usa codes.ec3_1_8.bolt_bearing_Rd(direction_inner=…, d0_mm=…). Sin punzonamiento ni deslizamiento aquí (funciones aparte en codes.ec3_1_8).

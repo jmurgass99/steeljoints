@@ -1,0 +1,16 @@
+Chapa de 20 × 300 mm, A572 Gr. 50 (Fy = 345, Fu = 450 MPa), A = 6000 mm²
+  CJP a tracción: Rn = 2070 kN, φRn = 1863 kN (metal_base)
+  CJP a cortante: Rn = 1242 kN, φRn = 1118 kN (metal_base)
+  A mano a tracción: mín(0,90·345·6000, 0,75·450·6000) = mín(1863, 2025) kN → fluencia
+
+PJP sobre la misma chapa, electrodo E70, L = 300 mm, tracción normal al eje:
+  prof. [mm] ángulo proceso E [mm] φRn [kN]   gobierna
+           6     60    SMAW    6.0      393  soldadura
+          10     60    SMAW   10.0      655  soldadura
+          10     45    SMAW    7.0      458  soldadura
+          10     45     SAW   10.0      655  soldadura
+          14     60    GMAW   14.0      917  soldadura
+          20     60    SMAW   20.0     1310  soldadura
+  Ranura a 30° → GeometryError: angulo de ranura PJP < 45deg no recomendado
+
+Este módulo usa FEXX = 485 MPa para E70 (el resto del paquete, 482,6 = 70 ksi exactos: +0.5 %) y φ = 0.75 para la soldadura en todos los casos. Un informe de investigación de AISC da Ω = 1,88 (φ = 0,80) para PJP a tracción normal al eje, así que aquí sale del lado seguro. El cortante CJP usa φ = 0.9 sobre 0,6·Fy; §J4.2 usa φ = 1,00 para la fluencia por cortante (conservador).

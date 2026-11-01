@@ -1,0 +1,15 @@
+4 uniones: 2 seguras, 0 que no cumplen, 2 sin veredicto, 1 con geometría fuera de §5.8
+  viga   M demanda     Mpr  util. geometría             estado
+  V-101        980    1146  0.855        OK   CALCULADO_CUMPLE
+  V-102       -640     763  0.839        OK   CALCULADO_CUMPLE
+  V-103        520     369  1.410     fuera  REQUIERE_REVISION
+  V-104          —     493      —        OK       NO_CALCULADO
+  Viga crítica: V-103 (utilización 1.410)
+  V-104: falta ["sin demanda para beam_id='V-104'"]
+
+Cartela de refuerzo bajo la viga de 460 mm (ala 191 × 14,5, Zx 1,62e6 mm³), cartela de 250 × 600 mm con ala 180 × 15 mm:
+  USA: resistencia 993 kN·m (factor 0.90), ángulo 22.6°, fuerza vertical 0.712 kN por kN·m, ala b/2t = 6.0 compacta
+  EU : resistencia 1104 kN·m (factor 1.00), ángulo 22.6°, fuerza vertical 0.712 kN por kN·m, ala b/2t = 6.0 compacta
+  Viga sola: φ·Fy·Zx = 503 kN·m.
+
+El signo del momento se descarta (|M|). V-103 tiene un corte de 60 mm, más de 0,25·bf: queda fuera de la precalificación y pide revisión aunque su utilización sea conocida. V-104 no tiene demanda en el análisis y sale sin veredicto (hasta la versión 1.1 desaparecía del informe). La resistencia de la cartela es un modelo simplificado sin contrastar con AISC Design Guide 21 ni con la FEMA 355D: úsala para predimensionar, no para verificar. El valor devuelto ya incluye φ, aunque el campo se llame Mn_kNm.

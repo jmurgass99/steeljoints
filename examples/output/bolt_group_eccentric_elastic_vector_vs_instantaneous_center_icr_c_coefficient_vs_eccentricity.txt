@@ -1,0 +1,14 @@
+Grupo 2 × 3 (gramil 75 mm, paso 75 mm), A325-N de 3/4": φrn = 79.6 kN por perno
+  e [mm] C elástico   C ICR ICR/elás.   IC (x, y) [mm] φRn ICR [kN]    solver
+       0      6.000   6.000     1.000                ∞        477.5 centered_load
+      50      3.882   4.476     1.153          (87, 0)        356.2 bisection
+     100      2.657   3.054     1.150          (46, 0)        243.1 bisection
+     150      1.985   2.249     1.133          (37, 0)        178.9 bisection
+     200      1.576   1.774     1.126          (32, 0)        141.2 bisection
+     300      1.111   1.241     1.117          (24, 0)         98.8 bisection
+     500      0.696   0.769     1.105          (15, 0)         61.2 bisection
+
+Comprobación de una ménsula con Pu = 200 kN a 200 mm: φRn = C·φrn = 141.2 kN → utilización 1.42 NO cumple
+  Método elástico: perno crítico 126.9 kN frente a 79.6 kN → utilización 1.59
+
+Con e = 0 los dos métodos dan C = n = 6. Con excentricidad el ICR da entre un 11 % y un 15 % más que el elástico: es la reserva por ductilidad de los pernos interiores que el método elástico no usa. Los C de las Tablas 7-6 a 7-14 del Manual salen de este mismo modelo, pero aquí no se han comparado valor a valor.

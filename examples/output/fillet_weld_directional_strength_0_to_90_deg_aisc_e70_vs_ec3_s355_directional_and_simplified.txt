@@ -1,0 +1,15 @@
+Cordón de 8 mm, garganta a = 5.66 mm. AISC: E70 (FEXX 482,6 MPa), φ = 0,75. EC3: S355, fu = 510 MPa, βw = 0.9, γM2 = 1,25.
+
+    θ AISC φRn [N/mm]   ×θ=0 EC3 direcc. [N/mm] ×simplif. EC3 simplif.
+    0            1228  1.000               1481     1.000         1481
+   15            1309  1.066               1497     1.011         1481
+   30            1446  1.177               1546     1.044         1481
+   45            1594  1.297               1622     1.095         1481
+   60            1724  1.403               1710     1.155         1481
+   75            1812  1.475               1784     1.205         1481
+   90            1843  1.500               1813     1.225         1481
+
+A mano a 90°: AISC 1 + 0,5·1 = 1,5 (función 1.500); EC3 √(3/2) = 1.225 (función 1.225).
+A 0° el EC3 simplificado y el direccional coinciden (1481 N/mm) y quedan un 21 % por encima del AISC E70 con estos materiales.
+
+A 90° el método direccional de EC3 sube un 22 % y AISC un 50 %. AISC aplica el aumento completo a un grupo lineal de tamaño uniforme cargado por su centro de gravedad (§J2.4(b)(1)); si se mezclan cordones longitudinales y transversales, §J2.4(b)(2) limita a máx(Rnwl + Rnwt, 0,85·Rnwl + 1,5·Rnwt) por compatibilidad de deformaciones. En EC3 el simplificado es siempre seguro.

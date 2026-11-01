@@ -1,0 +1,15 @@
+IOM en diccionario: claves ['OpenModel', 'OpenModelResult']
+  4 nodos, 3 barras, 2 vectores de esfuerzos; unidades SI_m_kN_kNm_MPa
+  XML de 1107 caracteres; raíz <IdeaOpenModel> con hijos ['ProjectData', 'Points', 'Members', 'Connection', 'LoadCases']
+
+CSV de esfuerzos (4 líneas):
+  Member,Position,LoadingCase,N [kN],Vy [kN],Vz [kN],Mx [kNm],My [kNm],Mz [kNm]
+  Viga,Begin,1.35G+1.5Q,-12.000,0.000,-185.000,0.000,-210.000,0.000
+  Viga,Begin,G+0.3Q+Ex,35.000,2.000,-95.000,1.500,-340.000,12.000
+  Lectura de vuelta: 3 filas, idénticas a las originales: True
+JSON: claves ['count', 'member_forces', 'schema_version', 'software_target', 'units']
+
+RFEM 6: método create_model, 4 nodos, 3 barras, 1 materiales; primer nodo {'no': 1, 'coordinates': [0.0, 0.0, 0.0]}
+
+Ficheros en out/: nudo_B3.iom.xml, nudo_B3_esfuerzos.csv
+El CSV y el JSON sirven para pegar esfuerzos en IDEA StatiCa a mano o con su API. El XML IOM de este módulo NO lo importa IDEA StatiCa 21.1 (el formato real es `OpenModel` versión 2), y la carga útil de RFEM 6 no se ha enviado nunca a un RFEM real: trátalos como borradores de intercambio.

@@ -1,0 +1,26 @@
+Resistencia característica F_Rk [kN] con alambres de 5 mm y f_uk = 1770 MPa:
+    7 alambres (A_m =    137 mm²): grupo 1     243 | grupo 2     224 | grupo 3     207
+   19 alambres (A_m =    373 mm²): grupo 1     660 | grupo 2     607 | grupo 3     561
+   37 alambres (A_m =    726 mm²): grupo 1    1286 | grupo 2    1183 | grupo 3    1093
+   61 alambres (A_m =   1198 mm²): grupo 1    2120 | grupo 2    1950 | grupo 3    1802
+
+Coeficiente parcial γM del módulo:
+  clase 1: construction 0.990 | service 1.350 | fatigue 1.215 | accidental 0.900
+  clase 2: construction 1.100 | service 1.500 | fatigue 1.350 | accidental 1.000
+  clase 3: construction 1.210 | service 1.650 | fatigue 1.485 | accidental 1.100
+
+Cordón de 37 alambres, clase 2, servicio: F_Rd = F_Rk/γM = 1183/1.50 = 789 kN
+
+Tensión de flexión en el anclaje con una desviación angular de 0,5° (barra maciza equivalente de 35 mm, E = 165 GPa):
+  F =  200 kN → σ_b =  102.2 MPa (tensión media  207.9 MPa); por radián   11713 MPa
+  F =  400 kN → σ_b =  144.6 MPa (tensión media  415.8 MPa); por radián   16565 MPa
+  F =  600 kN → σ_b =  177.0 MPa (tensión media  623.6 MPa); por radián   20288 MPa
+  σ_b = θ·(d/2)·√(F·E/I). El modelo trata el cable como barra maciza (I y d/2 del conjunto); en un cordón cada alambre flecta con su propio radio, así que usa la expresión del fabricante para un cordón real.
+
+Categoría de fatiga del módulo:
+  wire         d = 36 mm → Δσ_C = 160 MPa
+  strand       d = 36 mm → Δσ_C = 150 MPa
+  locked_coil  d = 36 mm → Δσ_C = 120 MPa
+  bar          d = 36 mm → Δσ_C = 105 MPa
+
+γM de servicio = 1,5 por un factor de clase (0,9 / 1,0 / 1,1). El agrupamiento 1/2/3, los coeficientes 0,92 y 0,85 y los γM son la interpretación del módulo; compruébalos con EN 1993-1-11 y con la documentación del fabricante antes de usarlos.

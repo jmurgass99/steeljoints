@@ -1,0 +1,19 @@
+Pu = 2000 kN, hormigón f′c = 28 MPa, placa Fy = 250 MPa:
+
+   B × N [mm] √(A2/A1)     fp    φFp aplast.      m      n    λn′  tp,req
+    400 × 400     1.00  12.50  15.47   0.808   52.8   78.0   18.4    26.0
+    450 × 450     1.00   9.88  15.47   0.638   77.8  103.0   16.3    30.5
+    500 × 500     1.00   8.00  15.47   0.517  102.8  128.0   14.6    34.1
+    400 × 400     1.50  12.50  23.20   0.539   52.8   78.0   18.4    26.0
+    400 × 400     2.00  12.50  30.94   0.404   52.8   78.0   18.4    26.0
+    600 × 600     1.00   5.56  15.47   0.359  152.8  178.0   12.2    39.6
+
+Área mínima sin confinamiento: A1 = Pu/(0,65·0,85·f′c) = 129282 mm² → placa cuadrada de 360 mm.
+A mano, placa de 450 mm: m = (450 − 0,95·310)/2 = 77.8, n = (450 − 0,8·305)/2 = 103.0 mm; tp = 103.0·√(2·9.88/(0,9·250)) = 30.5 mm
+
+Servicio (con espesor dado):
+  tp =   25 mm → tp,req = 30.5 mm, DCR = 1.22
+  tp =   32 mm → tp,req = 30.5 mm, DCR = 0.95
+  tp =   40 mm → tp,req = 30.5 mm, DCR = 0.76
+
+Confinar el hormigón (pedestal mayor que la placa) sube Fp hasta el doble y deja usar una placa más pequeña, pero el espesor lo fija el voladizo mayor. Pasa √(A2/A1), no A2/A1: con una zapata cuatro veces mayor que la placa el valor es 2,0.

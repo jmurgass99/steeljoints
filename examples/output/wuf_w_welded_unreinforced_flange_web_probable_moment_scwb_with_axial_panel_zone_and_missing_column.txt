@@ -1,0 +1,25 @@
+Pilar de 400 × 400 (tf 24, tw 15, Zx 5,5e6 mm³, Fy 345), Mu = 1000 kN·m, Vu = 300 kN:
+  Pu/Py    Mpr   Vpr compacta   SCWB PZ DCR    DCR           estado
+   0.00   1602   555     True   1.11   2.04   0.62  CALCULADO_FALLA
+   0.14   1602   555     True   0.95   2.04   0.62  CALCULADO_FALLA
+   0.29   1602   555     True   0.79   2.04   0.62  CALCULADO_FALLA
+   0.50   1602   555     True   0.55   2.04   0.62  CALCULADO_FALLA
+   0.71   1602   555     True   0.32   2.04   0.62  CALCULADO_FALLA
+
+Notas con Pu = 2000 kN:
+  · SCWB: M*pb = Mpr + Vpr·dc/2 = 1712.6 kN.m
+  · SCWB con axil: M*pc = Zc Fyc (1 - Pu/Py), Pu/Py = 0.286
+  · SCWB = 0.79 < 1.0 - NO CUMPLE
+  · M_pr = 1601.7 kN.m (C_pr=1.15, Ry=1.1)
+  · V_pr = 554.6 kN
+  · Panel zone: phiVn=1328.2 kN, DCR=2.04
+  · SCWB ratio = 0.79
+  · CJP weld capacity = 1548.5 kN
+  · Incumple: SCWB 0.79 < 1.0
+  · Incumple: zona de panel DCR 2.04
+  A mano: Mpr = 1,15·1,1·345·3,67e6 = 1602 kN·m; M*pb = Mpr + Vpr·dc/2 = 1602 + 555·0,2 = 1713 kN·m; SCWB = Zc·Fyc·(1 − Pu/Py)/M*pb = 0.79 (un pilar y una viga; en un nudo interior con dos pilares y dos vigas el cociente es el mismo)
+
+Sin pilar declarado: estado NO_CALCULADO, scwb_ratio None, faltan ['col_d_mm (columna) ausente', 'col_bf_mm (columna) ausente', 'col_tf_mm (columna) ausente', 'col_tw_mm (columna) ausente', 'col_Zx_mm3 (columna) ausente', 'col_Fy_MPa (columna) ausente']
+design_wuf_w (simplificado): Mpr 1602 kN·m, Vu 555 kN, compacta True, SCWB 0.79
+
+Con este pilar fallan la zona de panel (DCR 2.04) y, en cuanto el axil pasa de cero, el pilar fuerte–viga débil. Hace falta chapa de refuerzo (ver el caso de zona de panel) y un pilar con más módulo plástico. Sin pilar, el servicio no inventa uno: el veredicto queda NO_CALCULADO. Hasta la versión 1.1 el servicio dividía por Zb·Fyb nominal y daba SCWB 1,07 (cumple) en este mismo nudo.

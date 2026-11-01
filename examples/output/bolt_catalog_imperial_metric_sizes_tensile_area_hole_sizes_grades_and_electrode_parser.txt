@@ -1,0 +1,38 @@
+  tamaño   d [mm] Ab [mm²] As [mm²]  As/Ab agujero est. sobredim.
+  1/2       12.70    126.7     91.5  0.722         14.3      17.5
+  5/8       15.88    197.9    145.8  0.737         17.5      20.7
+  3/4       19.05    285.0    215.5  0.756         20.6      23.9
+  7/8       22.23    387.9    298.7  0.770         23.8      28.6
+  1         25.40    506.7    391.0  0.772         28.6      31.8
+  1-1/8     28.57    641.3    491.6  0.767         31.8      35.0
+  M12       12.00    113.1     84.3  0.745         14.0      16.8
+  M14       14.00    153.9    115.0  0.747         16.0      18.8
+  M16       16.00    201.1    157.0  0.781         18.0      20.8
+  M18       18.00    254.5    192.0  0.755         20.0      22.8
+  M20       20.00    314.2    245.0  0.780         22.0      24.8
+  M22       22.00    380.1    303.0  0.797         24.0      26.8
+  M24       24.00    452.4    353.0  0.780         27.0      30.4
+  M27       27.00    572.6    459.0  0.802         30.0      33.4
+  M30       30.00    706.9    561.0  0.794         33.0      36.4
+
+  As fuera de catálogo por ISO 898-1, π/4·(d − 0,9382·P)²: M33 → 694 mm², M36 → 817 mm² (tablas ISO: 694 y 817)
+
+Grados AISC 360-22 Tabla J3.2 [MPa]: A307: Fnt 310, Fnv-N 186, Fnv-X 186; A325: Fnt 620, Fnv-N 372, Fnv-X 469; A490: Fnt 779, Fnv-N 469, Fnv-X 579; F1852: Fnt 620, Fnv-N 372, Fnv-X 469; F2280: Fnt 779, Fnv-N 469, Fnv-X 579
+Clases EN ISO 898-1 (EC3 Tabla 3.1) [MPa]: 4.6: fyb 240, fub 400, αv 0.6; 4.8: fyb 320, fub 400, αv 0.5; 5.6: fyb 300, fub 500, αv 0.6; 5.8: fyb 400, fub 500, αv 0.5; 6.8: fyb 480, fub 600, αv 0.5; 8.8: fyb 640, fub 800, αv 0.6; 10.9: fyb 900, fub 1000, αv 0.5
+
+Lector de electrodos (FEXX en MPa):
+  'E70XX'      →  482.6
+  'E7018'      →  482.6
+  'E70T-1'     →  482.6
+  'E80'        →  551.6
+  '70 ksi'     →  482.6
+  'FEXX=90'    →  620.5
+  '480 MPa'    →  480.0
+  70           →  482.6
+  482.6        →  482.6
+  'E110XX'     →  758.4
+  'acero'      → KeyError: "Electrodo desconocido 'acero'. Disponibles: ['E60XX', 'E70XX', 'E80XX', 'E90XX', 'E100XX', 'E110XX']"
+
+Tamaño inexistente → KeyError: "Tamaño desconocido 'M21'. Imperial: ['1/2', '5/8', '3/4', '7/8', '1', '1-1/8', …
+
+As/Ab ronda 0,75–0,78: por eso EN 1993-1-8 usa As cuando la rosca está en el plano de corte y en tracción, y AISC lo incorpora en Fnt y en Fnv-N. El agujero estándar sale de AISC 360-22 Tabla J3.3 (d + 1/16" por debajo de 1", d + 1/8" desde 1") y de la Tabla J3.3M para métricos (M24 → 27 mm); EN 1090-2 usa otras holguras (1/2/3 mm, ver bolts.ec3_normal_hole_clearance). La columna de sobredimensionados no está contrastada con la tabla.

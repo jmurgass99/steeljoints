@@ -62,3 +62,6 @@ Documentos de referencia */
 # herramientas locales de agentes
 .claude-flow/
 .claude/
+
+# salidas de los casos de uso (ficheros generados)
+examples/out/

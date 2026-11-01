@@ -1,0 +1,14 @@
+T soldada: A = 5700 mm², ȳ = 66.3 mm desde la cara del ala, Ix = 37.92e6, Iy = 10.69e6 mm⁴, J = 356.4e3 mm⁴, Cw = 0.705e9 mm⁶, centro de cortante a yo = 58.3 mm del centroide
+
+  L [m]     Fex     Fey     Fez Fe cúbica Fe cerrada Pcr [kN]           modo
+    1.5    5836    1645     414     381.0      381.0     2171   flexotorsión
+    2.0    3283     925     410     349.3      349.3     1991   flexotorsión
+    3.0    1459     411     407     266.6      266.6     1520   flexotorsión
+    4.0     821     231     406     186.3      186.3     1062   flexotorsión
+    6.0     365     103     405      94.6       94.6      539   flexotorsión
+    8.0     205      58     405      55.3       55.3      315   flexotorsión
+
+A mano con L = 3 m: r̄o² = yo² + (Ix + Iy)/A = 11930 mm² (función 11930); H = 1 − yo²/r̄o² = 0.715; Fez = (π²·E·Cw/Lcz² + G·J)/(A·r̄o²) = 406.9 MPa
+Sección sin eje de simetría con la fórmula cerrada → ValueError: la fórmula cerrada sólo aplica con un eje de simetría
+
+El eje de simetría es el vertical (y): la flexión alrededor del eje horizontal (Fex) queda desacoplada y la flexión alrededor de y (Fey) se acopla con la torsión (Fez). La reducción respecto al menor de Fey y Fez es máxima cuando ambos se igualan (34 % con 3 m) y pequeña cuando la flexión domina (4 % con 8 m). La cúbica y la fórmula cerrada coinciden en todo el barrido.

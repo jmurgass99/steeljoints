@@ -1,0 +1,28 @@
+Perno individual en chapa de 10 mm (Fu 400 MPa), distancia al borde variable:
+  AISC A325 e =   25 mm → Rn corte  105.8 | aplastamiento   70.5 kN → gobierna bearing
+  AISC A325 e =   30 mm → Rn corte  105.8 | aplastamiento   94.5 kN → gobierna bearing
+  AISC A325 e =   40 mm → Rn corte  105.8 | aplastamiento  142.5 kN → gobierna shear
+  AISC A325 e =   60 mm → Rn corte  105.8 | aplastamiento  182.9 kN → gobierna shear
+  EC3  8.8  e =   25 mm → Rn corte  117.6 | aplastamiento   75.8 kN → gobierna bearing
+  EC3  8.8  e =   30 mm → Rn corte  117.6 | aplastamiento   90.9 kN → gobierna bearing
+  EC3  8.8  e =   40 mm → Rn corte  117.6 | aplastamiento  121.2 kN → gobierna shear
+  EC3  8.8  e =   60 mm → Rn corte  117.6 | aplastamiento  181.8 kN → gobierna shear
+  φRn corte del servicio 79.4 kN frente a 79.6 kN de la clase Bolt (el servicio usa Fnv = 0,45·Fu en vez de la Tabla J3.2)
+  Notas: ['Rn shear = 105.8 kN | bearing = 94.5 kN', 'Aplastamiento AISC §J3.10: lc = 19.7 mm, mín(1,2·lc·t·Fu, 2,4·d·t·Fu)', 'Gobierna: bearing']
+
+Línea de 4 pernos A325 de 3/4" a 76 mm con Vu = 150 kN y momento:
+  Mu =    0 kN·m → Rn grupo  423.3 kN, DCR 0.47
+  Mu =    5 kN·m → Rn grupo  415.8 kN, DCR 0.53
+  Mu =   10 kN·m → Rn grupo  392.7 kN, DCR 0.69
+  Mu =   20 kN·m → Rn grupo  281.8 kN, DCR 1.10
+
+Cordón de 8 × 150 mm, FEXX 482 MPa:
+  θ =   0° → φRn = 184.0 kN (factor 1.000)
+  θ =  90° → φRn = 276.0 kN (factor 1.500)
+
+Servicios provisionales:
+  design_clip_angle → DCR 0.64; PROVISIONAL: solo fluencia por cortante bruto con Fy = 345 MPa y sin φ; para pernos, aplastamiento, rotura y bloque usa steeljoints.ClipAngle
+  design_splice → Mn 345 kN·m, DCR 0.43; PROVISIONAL: Fy = 345 MPa fijo y brazo fijo de 0,5 m (la entrada no trae el canto); no comprueba pernos, alma ni cortante
+
+Salida serializable: ['Rd_shear_kN', 'Rn_bearing_kN', 'Rn_shear_kN', 'Rn_tension_kN', 'governs', 'notes']
+Los servicios provisionales lo dicen en sus notas; para proyecto usa ClipAngle y splice_design, que comprueban todos los estados límite.

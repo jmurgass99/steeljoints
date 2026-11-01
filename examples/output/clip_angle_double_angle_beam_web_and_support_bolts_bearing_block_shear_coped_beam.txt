@@ -1,0 +1,30 @@
+Vu = 250 kN, 3 pernos a 75 mm, angulares de 9,5 mm, alma de 8 mm (A572 Gr. 50), gramil al borde del alma 35 mm:
+  Bolt shear (web, double shear)                 φRn =   477.5 kN → 0.524 cumple
+  Bolt shear (support, single shear ×2 angles)   φRn =   477.5 kN → 0.524 cumple
+  Bearing on beam web                            φRn =   335.9 kN → 0.744 cumple
+  Bearing on angle legs (2 angles)               φRn =   709.1 kN → 0.352 cumple
+  Angle shear yielding (2 angles)                φRn =   639.0 kN → 0.391 cumple
+  Angle shear rupture (2 angles)                 φRn =   557.0 kN → 0.449 cumple
+  Block shear (2 angles)                         φRn =   692.0 kN → 0.361 cumple
+  Block shear (beam web)                         φRn =   285.4 kN → 0.876 cumple
+  Gobierna: Block shear (beam web) (0.876)
+
+Espesor del alma de la viga:
+  tw =  5.0 mm → gobierna Block shear (beam web)                         1.402
+  tw =  6.5 mm → gobierna Block shear (beam web)                         1.078
+  tw =  8.0 mm → gobierna Block shear (beam web)                         0.876
+  tw = 10.0 mm → gobierna Block shear (beam web)                         0.701
+  tw = 12.0 mm → gobierna Block shear (beam web)                         0.584
+  tw = 14.0 mm → gobierna Bolt shear (web, double shear)                 0.524
+  tw = 16.0 mm → gobierna Bolt shear (web, double shear)                 0.524
+
+Número de pernos con alma de 8 mm:
+  n = 2 → altura de angular 151 mm, φRn =  198.0 kN (Block shear (beam web))
+  n = 3 → altura de angular 226 mm, φRn =  285.4 kN (Block shear (beam web))
+  n = 4 → altura de angular 301 mm, φRn =  372.8 kN (Block shear (beam web))
+  n = 5 → altura de angular 376 mm, φRn =  460.2 kN (Block shear (beam web))
+
+Servicio provisional: Rn = 393.3 kN, DCR = 0.64 frente a 0.88 de la clase completa (285.4 kN).
+  Nota del servicio: PROVISIONAL: solo fluencia por cortante bruto con Fy = 345 MPa y sin φ; para pernos, aplastamiento, rotura y bloque usa steeljoints.ClipAngle
+
+Hasta un alma de 12 mm manda «Block shear (beam web)»; desde 14 mm pasa a mandar «Bolt shear (web, double shear)». El servicio ignora pernos, aplastamiento y bloque: úsalo solo como orden de magnitud.

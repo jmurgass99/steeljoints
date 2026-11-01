@@ -1,0 +1,18 @@
+Viga de 450 × 190 × 14,6 mm, chapa de 230 × 22 mm (Fy 345 MPa), pernos A325 de 7/8", pfo = pfi = 38 mm, gramil 140 mm:
+  Bolt tension                     utilización 0.795 cumple
+  Bolt shear (Vu)                  utilización 0.277 cumple
+  End plate flexure                utilización 0.334 cumple
+  Welds (flange CJP + web fillet)  utilización 0.667 cumple
+  Gobierna: Bolt tension (0.795)
+  A mano: T = Mu/(2·(h0 + h1)) = 250e3/(2·(480.7 + 390.1)) = 143.5 kN (función 143.5)
+
+Yp del módulo = 4975 mm; forma habitual de 4E = 3790 mm (+31 %).
+  tp [mm] φMn módulo φMn Yp habitual                         gobierna  util.
+     14.0      302.8           230.6                End plate flexure  0.826
+     16.0      395.4           301.2                     Bolt tension  0.795
+     19.0      557.6           424.8                     Bolt tension  0.795
+     22.0      747.6           569.5                     Bolt tension  0.795
+     25.0      965.4           735.4                     Bolt tension  0.795
+
+Espesor necesario para 250 kN·m: 12.7 mm con el Yp del módulo y 14.6 mm con la forma habitual.
+El Yp del módulo incluye términos que la forma habitual de 4E no tiene y no se ha podido contrastar con AISC 358; hasta resolverlo, dimensiona la chapa con el mayor de los dos espesores. La comprobación sísmica (seismic=True con Zx y Ry) usa Mpr en lugar de Mu.
