@@ -1,5 +1,7 @@
 # steeljoints — uniones de acero en Python: pernos, soldaduras, chapas, placas base y uniones sísmicas
 
+**Español** · [English](README.en.md) · [Português](README.pt.md) · [Italiano](README.it.md)
+
 Pernos y grupos de pernos por el método elástico y por centro instantáneo, efecto palanca, cordones de filete y a tope, grupos de soldadura elásticos y por centro instantáneo, chapas a cortante, dobles angulares, bloque de cortante en cuatro normas, chapas frontales por líneas de fluencia y por T-stub de EN 1993-1-8, placas base, zona de panel con chapa de refuerzo, RBS y WUF-W de AISC 358, anclajes, fractura frágil, cables de EN 1993-1-11, pandeo por flexotorsión, exportación a IDEA StatiCa, CalculiX y DXF, y una API REST. Dependencias: `numpy` y `pydantic`.
 
 [![CI](https://github.com/jmurgass99/steeljoints/actions/workflows/ci.yml/badge.svg)](https://github.com/jmurgass99/steeljoints/actions/workflows/ci.yml)
