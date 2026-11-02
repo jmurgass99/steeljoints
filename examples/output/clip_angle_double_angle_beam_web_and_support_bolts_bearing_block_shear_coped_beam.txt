@@ -24,7 +24,8 @@ Número de pernos con alma de 8 mm:
   n = 4 → altura de angular 301 mm, φRn =  372.8 kN (Block shear (beam web))
   n = 5 → altura de angular 376 mm, φRn =  460.2 kN (Block shear (beam web))
 
-Servicio provisional: Rn = 393.3 kN, DCR = 0.64 frente a 0.88 de la clase completa (285.4 kN).
-  Nota del servicio: PROVISIONAL: solo fluencia por cortante bruto con Fy = 345 MPa y sin φ; para pernos, aplastamiento, rotura y bloque usa steeljoints.ClipAngle
+Servicio en modo rápido: Rn = 393.3 kN, DCR = 0.64 frente a 0.88 de la clase completa (285.4 kN).
+  Nota del servicio: Fluencia por cortante bruto con Fy = 345 MPa; activa full_aisc_checks=True para pernos, aplastamiento y bloque de cortante
+Servicio con full_aisc_checks=True: DCR = 0.88 (Block shear (beam web)); igual que la clase con los mismos datos.
 
-Hasta un alma de 12 mm manda «Block shear (beam web)»; desde 14 mm pasa a mandar «Bolt shear (web, double shear)». El servicio ignora pernos, aplastamiento y bloque: úsalo solo como orden de magnitud.
+Hasta un alma de 12 mm manda «Block shear (beam web)»; desde 14 mm pasa a mandar «Bolt shear (web, double shear)». El modo rápido del servicio ignora pernos, aplastamiento y bloque: úsalo solo como orden de magnitud.

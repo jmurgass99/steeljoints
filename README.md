@@ -32,7 +32,7 @@ Una unión de acero se comprueba con una cadena de estados límite: el perno a c
 pip install git+https://github.com/jmurgass99/steeljoints.git
 ```
 
-Extras: `numeric` (scipy, para el centro instantáneo con carga oblicua o excéntrica; sin él se lanza `DependencyError` con la instrucción), `api` (FastAPI, uvicorn, httpx), `dxf` (ezdxf), `memos` (handcalcs; sin él las memorias salen con texto plano), `test`. Para desarrollo: `git clone`, `pip install -e ".[test,api,memos,dxf,numeric]"`, `pytest -q` (40 ficheros de tests; `tests/test_examples.py` ejecuta los 33 casos de uso como subprocesos). En Windows, si la consola no es UTF-8, ejecuta los ejemplos con `python -X utf8 examples/<nombre>.py`. Los ejemplos escriben sus ficheros (XML, CSV, `.inp`, DXF) en `examples/out/`, que no se versiona, y su salida de consola en `examples/output/`.
+Extras: `numeric` (scipy, para el centro instantáneo con carga oblicua o excéntrica; sin él se lanza `DependencyError` con la instrucción), `api` (FastAPI, uvicorn, httpx), `dxf` (ezdxf), `memos` (handcalcs; sin él las memorias salen con texto plano), `test`. Para desarrollo: `git clone`, `pip install -e ".[test,api,memos,dxf,numeric]"`, `pytest -q` (42 ficheros de tests; `tests/test_examples.py` ejecuta los 33 casos de uso como subprocesos). En Windows, si la consola no es UTF-8, ejecuta los ejemplos con `python -X utf8 examples/<nombre>.py`. Los ejemplos escriben sus ficheros (XML, CSV, `.inp`, DXF) en `examples/out/`, que no se versiona, y su salida de consola en `examples/output/`.
 
 ## Capacidades
 
@@ -443,10 +443,11 @@ Número de pernos con alma de 8 mm:
   n = 4 → altura de angular 301 mm, φRn =  372.8 kN (Block shear (beam web))
   n = 5 → altura de angular 376 mm, φRn =  460.2 kN (Block shear (beam web))
 
-Servicio provisional: Rn = 393.3 kN, DCR = 0.64 frente a 0.88 de la clase completa (285.4 kN).
-  Nota del servicio: PROVISIONAL: solo fluencia por cortante bruto con Fy = 345 MPa y sin φ; para pernos, aplastamiento, rotura y bloque usa steeljoints.ClipAngle
+Servicio en modo rápido: Rn = 393.3 kN, DCR = 0.64 frente a 0.88 de la clase completa (285.4 kN).
+  Nota del servicio: Fluencia por cortante bruto con Fy = 345 MPa; activa full_aisc_checks=True para pernos, aplastamiento y bloque de cortante
+Servicio con full_aisc_checks=True: DCR = 0.88 (Block shear (beam web)); igual que la clase con los mismos datos.
 
-Hasta un alma de 12 mm manda «Block shear (beam web)»; desde 14 mm pasa a mandar «Bolt shear (web, double shear)». El servicio ignora pernos, aplastamiento y bloque: úsalo solo como orden de magnitud.
+Hasta un alma de 12 mm manda «Block shear (beam web)»; desde 14 mm pasa a mandar «Bolt shear (web, double shear)». El modo rápido del servicio ignora pernos, aplastamiento y bloque: úsalo solo como orden de magnitud.
 ```
 
 </details>
@@ -503,9 +504,9 @@ NSR-10 F.2 sigue a AISC 360-05, donde el A325-N tenía 48 ksi (330 MPa); el mód
 
 </details>
 
-#### Capa de servicios: perno con distancia al borde, línea de pernos con momento y servicios provisionales
+#### Capa de servicios: perno con distancia al borde, línea de pernos con momento y modo rápido frente a comprobación completa
 
-<details><summary>Salida real de <code>python examples/services_layer_single_bolt_group_fillet_weld_clip_splice_provisional_flags_vs_full_classes.py</code></summary>
+<details><summary>Salida real de <code>python examples/services_layer_single_bolt_group_fillet_weld_clip_splice_quick_vs_full_checks.py</code></summary>
 
 ```text
 Perno individual en chapa de 10 mm (Fu 400 MPa), distancia al borde variable:
@@ -530,41 +531,44 @@ Cordón de 8 × 150 mm, FEXX 482 MPa:
   θ =   0° → φRn = 184.0 kN (factor 1.000)
   θ =  90° → φRn = 276.0 kN (factor 1.500)
 
-Servicios provisionales:
-  design_clip_angle → DCR 0.64; PROVISIONAL: solo fluencia por cortante bruto con Fy = 345 MPa y sin φ; para pernos, aplastamiento, rotura y bloque usa steeljoints.ClipAngle
-  design_splice → Mn 345 kN·m, DCR 0.43; PROVISIONAL: Fy = 345 MPa fijo y brazo fijo de 0,5 m (la entrada no trae el canto); no comprueba pernos, alma ni cortante
+Doble angular 2L 100 × 100 × 9,5 con Vu = 250 kN, modo rápido y comprobación completa:
+  rápido   → DCR 0.64 (Gross shear yield); Fluencia por cortante bruto con Fy = 345 MPa; activa full_aisc_checks=True para pernos, aplastamiento y bloque de cortante
+  completo → DCR 0.88 (Block shear (beam web)); Capacidad gobernante efectiva φRn = 285.4 kN
+Empalme con Mu = 150 kN·m y Vu = 80 kN:
+  solo alas, canto por defecto → Mn 345 kN·m, DCR 0.43; Mn = 345.0 kN*m (brazo d = 500 mm, Fy = 345 MPa), DCR = 0.43
+  canto 450 mm y 4 pernos de alma → Mn 310 kN·m, DCR 0.48, perno más cargado 26.3 kN (DCR 0.33)
 
 Salida serializable: ['Rd_shear_kN', 'Rn_bearing_kN', 'Rn_shear_kN', 'Rn_tension_kN', 'governs', 'notes']
-Los servicios provisionales lo dicen en sus notas; para proyecto usa ClipAngle y splice_design, que comprueban todos los estados límite.
+El modo rápido del doble angular da DCR 0.64 frente a 0.88 del completo: subestima la demanda. Para proyecto, full_aisc_checks=True o la clase ClipAngle.
 ```
 
 </details>
 
 ### 4. Uniones a momento y sísmicas
 
-#### Chapa frontal 4E: tracción de pernos, líneas de fluencia, barrido del espesor y el Yp sin contrastar
+#### Chapa frontal 4E: tracción de pernos, líneas de fluencia, barrido del espesor y Yp frente a AISC 358 Tabla 6.2
 
-<details><summary>Salida real de <code>python examples/end_plate_4e_extended_aisc358_bolt_tension_plate_yield_line_thickness_sweep_and_flagged_yp.py</code></summary>
+<details><summary>Salida real de <code>python examples/end_plate_4e_extended_aisc358_bolt_tension_plate_yield_line_thickness_sweep_and_yp_table_6_2_check.py</code></summary>
 
 ```text
 Viga de 450 × 190 × 14,6 mm, chapa de 230 × 22 mm (Fy 345 MPa), pernos A325 de 7/8", pfo = pfi = 38 mm, gramil 140 mm:
   Bolt tension                     utilización 0.795 cumple
   Bolt shear (Vu)                  utilización 0.277 cumple
-  End plate flexure                utilización 0.334 cumple
+  End plate flexure                utilización 0.439 cumple
   Welds (flange CJP + web fillet)  utilización 0.667 cumple
   Gobierna: Bolt tension (0.795)
   A mano: T = Mu/(2·(h0 + h1)) = 250e3/(2·(480.7 + 390.1)) = 143.5 kN (función 143.5)
 
-Yp del módulo = 4975 mm; forma habitual de 4E = 3790 mm (+31 %).
+Yp del módulo = 3790 mm; forma habitual de 4E = 3790 mm (+0 %).
   tp [mm] φMn módulo φMn Yp habitual                         gobierna  util.
-     14.0      302.8           230.6                End plate flexure  0.826
-     16.0      395.4           301.2                     Bolt tension  0.795
-     19.0      557.6           424.8                     Bolt tension  0.795
-     22.0      747.6           569.5                     Bolt tension  0.795
-     25.0      965.4           735.4                     Bolt tension  0.795
+     14.0      230.6           230.6                End plate flexure  1.084
+     16.0      301.2           301.2                End plate flexure  0.830
+     19.0      424.8           424.8                     Bolt tension  0.795
+     22.0      569.5           569.5                     Bolt tension  0.795
+     25.0      735.4           735.4                     Bolt tension  0.795
 
-Espesor necesario para 250 kN·m: 12.7 mm con el Yp del módulo y 14.6 mm con la forma habitual.
-El Yp del módulo incluye términos que la forma habitual de 4E no tiene y no se ha podido contrastar con AISC 358; hasta resolverlo, dimensiona la chapa con el mayor de los dos espesores. La comprobación sísmica (seismic=True con Zx y Ry) usa Mpr en lugar de Mu.
+Espesor necesario para 250 kN·m: 14.6 mm con el Yp del módulo y 14.6 mm con la forma habitual.
+El Yp del módulo coincide con la forma de AISC 358 Tabla 6.2 / DG4 escrita en el ejemplo, así que los dos espesores son el mismo. La comprobación sísmica (seismic=True con Zx y Ry) usa Mpr en lugar de Mu.
 ```
 
 </details>
@@ -690,7 +694,7 @@ La memoria usa V = 0,8·(Mf1 + Mf2)/d_b − Vc, con un coeficiente 0,8 que su pr
   V-101        980    1146  0.855        OK   CALCULADO_CUMPLE
   V-102       -640     763  0.839        OK   CALCULADO_CUMPLE
   V-103        520     369  1.410     fuera  REQUIERE_REVISION
-  V-104        nan     493      —        OK       NO_CALCULADO
+  V-104          —     493      —        OK       NO_CALCULADO
   Viga crítica: V-103 (utilización 1.410)
   V-104: falta ["sin demanda para beam_id='V-104'"]
 
@@ -756,7 +760,8 @@ Levantamiento (Pu = −150 kN, Mu = 60 kN·m): T = 143.2 kN por anclaje (Uplift/
   Espesor: None — Pu < 0 (levantamiento): la placa flecta por la traccion de los anclajes y esa comprobacion no esta implementada; la formula DG1 §3.3.4 es de compresion
   Informe: ❌ FAILED (gobierna Anchor bolt tension)
 
-Con momento el módulo deja fp en Pu/(B·N): con e = 150 mm la presión de DG1 es un 120 % mayor (del lado inseguro). Su modelo de anclajes va al revés: con e = 150 mm pide 127 kN por anclaje donde DG1 no pide ninguno, y con e = 350 mm pide 564 kN frente a 145 kN. Úsalo con compresión centrada; con momento calcula aplastamiento, espesor y anclajes con DG1 §3.4.
+Con momento el módulo deja fp en Pu/(B·N): con e = 150 mm la presión de DG1 es un 120 % mayor (del lado inseguro). Su modelo de anclajes va al revés: con e = 150 mm pide 127 kN por anclaje donde DG1 no pide ninguno, y con e = 350 mm pide 564 kN frente a 145 kN. Úsalo con compresión centrada; con momento usa BasePlate.dg1_eccentric_pressure.
+dg1_eccentric_pressure frente a la implementación del caso: diferencia máxima 0.000 (MPa o kN) en 7 filas.
 ```
 
 </details>
@@ -1044,12 +1049,11 @@ Los errores de tipo y rango los rechaza pydantic con 422; la falta de datos de i
 
 ## Limitaciones
 
-- `codes.aisc358.Yp_4E_unstiffened` lleva términos que la forma habitual de 4E no tiene y da un Yp un 30–40 % mayor; no se ha podido contrastar con AISC 358 y no se cambia. El caso de uso de chapa frontal muestra los dos espesores: usa el mayor.
 - `ShearTab` no comprueba la flexión de la chapa, la excentricidad de los pernos, la soldadura al soporte ni el aplastamiento en el alma de la viga, y descuenta agujeros de d + 2 mm.
 - `memos.end_plate` (EN 1993-1-8) da una cota superior: solo el T-stub de la chapa, sin ala ni alma del pilar ni límites de grupo de filas. Sin filas declaradas no calcula.
-- `BasePlate` calcula el aplastamiento y el espesor con Pu/(B·N), sin el momento (del lado inseguro con momento), y los anclajes con un modelo lineal propio, mucho más conservador que Design Guide 1 §3.4. Con momento, usa el bloque rectangular de DG1 (el caso de uso lo implementa para comparar). `A2_A1` es √(A2/A1).
+- `BasePlate` calcula el aplastamiento y el espesor con Pu/(B·N), sin el momento (del lado inseguro con momento), y los anclajes con un modelo lineal propio, mucho más conservador que Design Guide 1 §3.4. Con momento, usa `BasePlate.dg1_eccentric_pressure` (bloque rectangular de DG1 §3.4–3.5; el caso de uso lo contrasta con una implementación propia). `A2_A1` es √(A2/A1).
 - `memos.panel_zone` usa 0,8·ΣMf/d_b − Vc, con un 0,8 sin trazar a norma que su propio texto declara; para verificar, `PanelZone`. Las etiquetas de ecuación de §J10.6 difieren entre la API funcional y la memoria.
-- `services.splice` (brazo fijo de 0,5 m, Fy fijo) y `services.clip_angle` (solo fluencia bruta) son provisionales y lo dicen en sus notas; las clases `ClipAngle` y `splice_design` son las de cálculo. `services.bolts` aproxima Fnv con 0,45·Fu y 0,563·Fu.
+- `services.clip_angle` en modo rápido (por defecto) solo comprueba la fluencia bruta y subestima la demanda; con `full_aisc_checks=True` delega en `ClipAngle`. `services.splice` sin `n_bolts_web` solo comprueba las placas de ala con el brazo `beam_depth_mm` (500 mm por defecto). `services.bolts` aproxima Fnv con 0,45·Fu y 0,563·Fu.
 - `codes.ec3_1_8.bolt_bearing_Rd` con `direction_inner=False` omite el término 1,4·p2/d0 − 1,7 de k1 para tornillos de borde con varias filas, y su d0 por defecto es d; `Bolt.ec3_bearing_strength` usa los dos términos y d0 real. El bloque de cortante de EC3 implementa la Ec. 3.9, no la 3.10 de grupos con carga excéntrica.
 - `groove_welds` usa φ = 0,75 para la soldadura también en PJP a tracción normal al eje (φ = 0,80 en AISC) y φ = 0,90 para el cortante CJP (1,00 en §J4.2), y FEXX = 485 MPa para E70.
 - `catalog.oversized_hole` no está contrastado con la columna de sobredimensionados de las Tablas J3.3 y J3.3M.

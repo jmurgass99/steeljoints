@@ -20,9 +20,12 @@ Cordón de 8 × 150 mm, FEXX 482 MPa:
   θ =   0° → φRn = 184.0 kN (factor 1.000)
   θ =  90° → φRn = 276.0 kN (factor 1.500)
 
-Servicios provisionales:
-  design_clip_angle → DCR 0.64; PROVISIONAL: solo fluencia por cortante bruto con Fy = 345 MPa y sin φ; para pernos, aplastamiento, rotura y bloque usa steeljoints.ClipAngle
-  design_splice → Mn 345 kN·m, DCR 0.43; PROVISIONAL: Fy = 345 MPa fijo y brazo fijo de 0,5 m (la entrada no trae el canto); no comprueba pernos, alma ni cortante
+Doble angular 2L 100 × 100 × 9,5 con Vu = 250 kN, modo rápido y comprobación completa:
+  rápido   → DCR 0.64 (Gross shear yield); Fluencia por cortante bruto con Fy = 345 MPa; activa full_aisc_checks=True para pernos, aplastamiento y bloque de cortante
+  completo → DCR 0.88 (Block shear (beam web)); Capacidad gobernante efectiva φRn = 285.4 kN
+Empalme con Mu = 150 kN·m y Vu = 80 kN:
+  solo alas, canto por defecto → Mn 345 kN·m, DCR 0.43; Mn = 345.0 kN*m (brazo d = 500 mm, Fy = 345 MPa), DCR = 0.43
+  canto 450 mm y 4 pernos de alma → Mn 310 kN·m, DCR 0.48, perno más cargado 26.3 kN (DCR 0.33)
 
 Salida serializable: ['Rd_shear_kN', 'Rn_bearing_kN', 'Rn_shear_kN', 'Rn_tension_kN', 'governs', 'notes']
-Los servicios provisionales lo dicen en sus notas; para proyecto usa ClipAngle y splice_design, que comprueban todos los estados límite.
+El modo rápido del doble angular da DCR 0.64 frente a 0.88 del completo: subestima la demanda. Para proyecto, full_aisc_checks=True o la clase ClipAngle.

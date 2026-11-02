@@ -1,8 +1,9 @@
 """Unión a cortante con doble angular (2L 100 × 100 × 9,5, A36) y tres pernos A325-N de 3/4" en el alma de una viga despatinada: pernos a doble cortante en el alma y a cortante simple en el soporte, aplastamiento, fluencia y rotura de los angulares y bloque de cortante en angulares y en el alma.
 
 `ClipAngle(Vu, n_bolts, bolt_diameter, angle_thickness, angle_leg, beam_tw, Fy/Fu_angle, Fy/Fu_beam,
-beam_gage_to_edge).design()` (AISC 360-22 + Manual Parte 10). Se contrasta con el servicio provisional
-`services.clip_angle.design_clip_angle`, que solo hace fluencia bruta.
+beam_gage_to_edge).design()` (AISC 360-22 + Manual Parte 10). Se contrasta con el servicio
+`services.clip_angle.design_clip_angle`, que por defecto solo hace fluencia bruta y con
+`full_aisc_checks=True` delega en `ClipAngle`.
 
 Ejecutar:  python examples/clip_angle_double_angle_beam_web_and_support_bolts_bearing_block_shear_coped_beam.py
 """
@@ -30,12 +31,15 @@ def main() -> None:
         print(f"  n = {n} → altura de angular {d['angle_h_mm']:.0f} mm, φRn = {cap:6.1f} kN ({d['governing_check']})")
     s = design_clip_angle(ClipAngleInput(leg_a_mm=100, leg_b_mm=100, thickness_mm=9.5, Vu_kN=Vu))
     full = min(c["phi_Rn_kN"] for c in r["checks"])
-    print(f"\nServicio provisional: Rn = {s.Rn_kN:.1f} kN, DCR = {s.DCR:.2f} frente a {r['governing_utilization']:.2f} de la clase completa ({full:.1f} kN).")
+    sf = design_clip_angle(ClipAngleInput(leg_a_mm=100, leg_b_mm=100, thickness_mm=9.5, Vu_kN=Vu, full_aisc_checks=True))
+    print(f"\nServicio en modo rápido: Rn = {s.Rn_kN:.1f} kN, DCR = {s.DCR:.2f} frente a {r['governing_utilization']:.2f} de la clase completa ({full:.1f} kN).")
     print(f"  Nota del servicio: {s.notes[-1]}")
+    print(f"Servicio con full_aisc_checks=True: DCR = {sf.DCR:.2f} ({sf.governing_check}); "
+          f"{'igual que' if abs(sf.DCR - r['governing_utilization']) < 0.005 else 'distinto de'} la clase con los mismos datos.")
     cambio = next((tw for tw, g in gov_tw.items() if g != gov_tw[5.0]), None)
     print(f"\nHasta un alma de {max(t for t, g in gov_tw.items() if g == gov_tw[5.0]):.0f} mm manda «{gov_tw[5.0]}»"
           + (f"; desde {cambio:.0f} mm pasa a mandar «{gov_tw[cambio]}»." if cambio else ".")
-          + " El servicio ignora pernos, aplastamiento y bloque: úsalo solo como orden de magnitud.")
+          + " El modo rápido del servicio ignora pernos, aplastamiento y bloque: úsalo solo como orden de magnitud.")
 
 
 if __name__ == "__main__":

@@ -3,7 +3,7 @@
 `EndPlate(Mu, Vu, beam_depth, beam_tf, beam_bf, bolt_diameter, plate_thickness, plate_width, pfo, pfi, g).design()`:
 tracción por perno = Mu/(2·(h0 + h1)), chapa φMn = 0,90·Fy·tp²·Yp, soldadura CJP de alas y filete de alma.
 
-Ejecutar:  python examples/end_plate_4e_extended_aisc358_bolt_tension_plate_yield_line_thickness_sweep_and_flagged_yp.py
+Ejecutar:  python examples/end_plate_4e_extended_aisc358_bolt_tension_plate_yield_line_thickness_sweep_and_yp_table_6_2_check.py
 """
 from math import sqrt
 
@@ -43,8 +43,11 @@ def main() -> None:
     tp_req_mod = sqrt(250e6 / (0.90 * 345.0 * plate["Yp_mm"]))
     tp_req_hab = sqrt(250e6 / (0.90 * 345.0 * yp_hab))
     print(f"\nEspesor necesario para 250 kN·m: {tp_req_mod:.1f} mm con el Yp del módulo y {tp_req_hab:.1f} mm con la forma habitual.")
-    print("El Yp del módulo incluye términos que la forma habitual de 4E no tiene y no se ha podido contrastar con AISC 358; hasta resolverlo, "
-          "dimensiona la chapa con el mayor de los dos espesores. La comprobación sísmica (seismic=True con Zx y Ry) usa Mpr en lugar de Mu.")
+    if abs(plate["Yp_mm"] / yp_hab - 1) < 0.005:
+        print("El Yp del módulo coincide con la forma de AISC 358 Tabla 6.2 / DG4 escrita en el ejemplo, así que los dos espesores son el mismo.", end=" ")
+    else:
+        print("El Yp del módulo no coincide con la forma de AISC 358 Tabla 6.2 / DG4: dimensiona la chapa con el mayor de los dos espesores.", end=" ")
+    print("La comprobación sísmica (seismic=True con Zx y Ry) usa Mpr en lugar de Mu.")
 
 
 if __name__ == "__main__":

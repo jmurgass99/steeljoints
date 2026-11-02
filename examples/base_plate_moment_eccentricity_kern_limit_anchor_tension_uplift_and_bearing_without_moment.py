@@ -5,6 +5,8 @@ entre `n_anchors`, φRnt = 0,75·0,75·Fut·Ab. `bearing_check` y `required_thic
 Para comparar, el caso aplica Design Guide 1 §3.4 con bloque rectangular: fp,max = 0,65·0,85·f′c, q = fp,max·B,
 e_crit = N/2 − Pu/(2q); si e ≤ e_crit, Y = N − 2e y fp = Pu/(B·Y) sin tracción; si no, fp = fp,max,
 Y = (f + N/2) − √((f + N/2)² − 2·Pu·(e + f)/q) y T = q·Y − Pu, con f la distancia de los anclajes al eje.
+La clase trae además `BasePlate.dg1_eccentric_pressure(edge_dist_f_mm)` con el mismo método; el caso
+compara las dos implementaciones fila a fila.
 
 Ejecutar:  python examples/base_plate_moment_eccentricity_kern_limit_anchor_tension_uplift_and_bearing_without_moment.py
 """
@@ -38,12 +40,16 @@ def main() -> None:
     print(f"DG1: fp,max = 0,65·0,85·28 = {0.65 * 0.85 * 28:.2f} MPa, e_crit = {e_crit:.0f} mm; anclajes a f = {f_anc:.0f} mm del eje.\n")
     print(f"  {'Mu':>5} {'e [mm]':>6} {'fp módulo':>9} {'fp DG1':>7} {'T/ancl. módulo':>14} {'T/ancl. DG1':>11} {'φRnt':>6}")
     filas = []
+    dif_dg1 = []
     for Mu in (0.0, 40.0, 73.0, 120.0, 175.0, 200.0, 280.0):
         bp = BasePlate(Pu=Pu, Mu=Mu, **GEOM)
         e = Mu * 1e3 / Pu
         fp_mod = bp.bearing_check()["fp_MPa"]
         fp_dg1, T_dg1 = dg1_rectangular(Pu, Mu, B, N, 28.0, f_anc)
         a = bp.anchor_tension()
+        d = bp.dg1_eccentric_pressure(edge_dist_f_mm=50.0)
+        if fp_dg1 == fp_dg1:   # nan cuando la placa no equilibra
+            dif_dg1.append(max(abs(d["fp_MPa"] - fp_dg1), abs(d["Tu_per_bolt_kN"] - T_dg1 / 2)))
         filas.append((e, fp_mod, fp_dg1, a["T_per_bolt_kN"], T_dg1 / 2))
         phi = "—" if a["phi_Rnt_kN"] is None else f"{a['phi_Rnt_kN']:.1f}"
         print(f"  {Mu:5.0f} {e:6.0f} {fp_mod:9.2f} {fp_dg1:7.2f} {a['T_per_bolt_kN']:14.1f} {T_dg1 / 2:11.1f} {phi:>6}")
@@ -58,7 +64,8 @@ def main() -> None:
     e350 = filas[-1]
     print(f"\nCon momento el módulo deja fp en Pu/(B·N): con e = 150 mm la presión de DG1 es un {(e150[2] / e150[1] - 1) * 100:.0f} % mayor (del lado inseguro). "
           f"Su modelo de anclajes va al revés: con e = 150 mm pide {e150[3]:.0f} kN por anclaje donde DG1 no pide ninguno, y con e = 350 mm pide {e350[3]:.0f} kN frente a {e350[4]:.0f} kN. "
-          "Úsalo con compresión centrada; con momento calcula aplastamiento, espesor y anclajes con DG1 §3.4.")
+          "Úsalo con compresión centrada; con momento usa BasePlate.dg1_eccentric_pressure.")
+    print(f"dg1_eccentric_pressure frente a la implementación del caso: diferencia máxima {max(dif_dg1):.3f} (MPa o kN) en {len(dif_dg1)} filas.")
 
 
 if __name__ == "__main__":

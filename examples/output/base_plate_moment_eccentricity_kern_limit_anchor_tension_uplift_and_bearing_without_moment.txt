@@ -15,4 +15,5 @@ Levantamiento (Pu = −150 kN, Mu = 60 kN·m): T = 143.2 kN por anclaje (Uplift/
   Espesor: None — Pu < 0 (levantamiento): la placa flecta por la traccion de los anclajes y esa comprobacion no esta implementada; la formula DG1 §3.3.4 es de compresion
   Informe: ❌ FAILED (gobierna Anchor bolt tension)
 
-Con momento el módulo deja fp en Pu/(B·N): con e = 150 mm la presión de DG1 es un 120 % mayor (del lado inseguro). Su modelo de anclajes va al revés: con e = 150 mm pide 127 kN por anclaje donde DG1 no pide ninguno, y con e = 350 mm pide 564 kN frente a 145 kN. Úsalo con compresión centrada; con momento calcula aplastamiento, espesor y anclajes con DG1 §3.4.
+Con momento el módulo deja fp en Pu/(B·N): con e = 150 mm la presión de DG1 es un 120 % mayor (del lado inseguro). Su modelo de anclajes va al revés: con e = 150 mm pide 127 kN por anclaje donde DG1 no pide ninguno, y con e = 350 mm pide 564 kN frente a 145 kN. Úsalo con compresión centrada; con momento usa BasePlate.dg1_eccentric_pressure.
+dg1_eccentric_pressure frente a la implementación del caso: diferencia máxima 0.000 (MPa o kN) en 7 filas.

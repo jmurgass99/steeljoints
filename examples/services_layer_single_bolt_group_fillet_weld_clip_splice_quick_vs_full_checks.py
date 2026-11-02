@@ -1,8 +1,8 @@
-"""La capa de servicios (`steeljoints.services`): funciones con entrada y salida en dataclasses, pensadas para la API REST y la serialización a JSON. Perno individual AISC y EC3 con la distancia al borde, línea de pernos con momento, cordón de filete, y los dos servicios marcados PROVISIONAL (doble angular y empalme) frente a las clases de cálculo.
+"""La capa de servicios (`steeljoints.services`): funciones con entrada y salida en dataclasses, pensadas para la API REST y la serialización a JSON. Perno individual AISC y EC3 con la distancia al borde, línea de pernos con momento, cordón de filete, y el doble angular y el empalme en modo rápido frente a su comprobación completa (`full_aisc_checks=True` delega en `ClipAngle`; `n_bolts_web > 0` añade el grupo de pernos del alma con `SpliceConnection`).
 
 `design_single_bolt`, `design_bolt_group`, `design_fillet_weld`, `design_clip_angle`, `design_splice`.
 
-Ejecutar:  python examples/services_layer_single_bolt_group_fillet_weld_clip_splice_provisional_flags_vs_full_classes.py
+Ejecutar:  python examples/services_layer_single_bolt_group_fillet_weld_clip_splice_quick_vs_full_checks.py
 """
 from dataclasses import asdict
 
@@ -31,13 +31,19 @@ def main() -> None:
     for ang in (0.0, 90.0):
         w = design_fillet_weld(FilletWeldInput(8.0, 150.0, angle_load_deg=ang))
         print(f"  θ = {ang:3.0f}° → φRn = {w.Rd_kN:.1f} kN (factor {w.directional_factor:.3f})")
-    print("\nServicios provisionales:")
+    print("\nDoble angular 2L 100 × 100 × 9,5 con Vu = 250 kN, modo rápido y comprobación completa:")
     c = design_clip_angle(ClipAngleInput(100, 100, 9.5, 250.0))
+    cf = design_clip_angle(ClipAngleInput(100, 100, 9.5, 250.0, full_aisc_checks=True))
+    print(f"  rápido   → DCR {c.DCR:.2f} ({c.governing_check}); {c.notes[-1]}")
+    print(f"  completo → DCR {cf.DCR:.2f} ({cf.governing_check}); {cf.notes[-1]}")
+    print("Empalme con Mu = 150 kN·m y Vu = 80 kN:")
     s = design_splice(SpliceInput(Mu_kNm=150.0, Vu_kN=80.0))
-    print(f"  design_clip_angle → DCR {c.DCR:.2f}; {c.notes[-1]}")
-    print(f"  design_splice → Mn {s.Mn_kNm:.0f} kN·m, DCR {s.DCR:.2f}; {s.notes[-1]}")
+    sb = design_splice(SpliceInput(Mu_kNm=150.0, Vu_kN=80.0, beam_depth_mm=450.0, n_bolts_web=4))
+    print(f"  solo alas, canto por defecto → Mn {s.Mn_kNm:.0f} kN·m, DCR {s.DCR:.2f}; {s.notes[0]}")
+    print(f"  canto 450 mm y 4 pernos de alma → Mn {sb.Mn_kNm:.0f} kN·m, DCR {sb.DCR:.2f}, perno más cargado {sb.bolt_demand_max_kN:.1f} kN (DCR {sb.bolt_dcr:.2f})")
     print(f"\nSalida serializable: {sorted(asdict(r).keys())}")
-    print("Los servicios provisionales lo dicen en sus notas; para proyecto usa ClipAngle y splice_design, que comprueban todos los estados límite.")
+    print(f"El modo rápido del doble angular da DCR {c.DCR:.2f} frente a {cf.DCR:.2f} del completo: "
+          f"{'subestima' if c.DCR < cf.DCR else 'no subestima'} la demanda. Para proyecto, full_aisc_checks=True o la clase ClipAngle.")
 
 
 if __name__ == "__main__":
