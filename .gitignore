@@ -63,3 +63,7 @@ Documentos de referencia */
 
 # salidas de los casos de uso (ficheros generados)
 examples/out/
+
+# salida de los ejemplos
+examples/output/
+examples/out/
